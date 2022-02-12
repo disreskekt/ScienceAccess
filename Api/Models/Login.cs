@@ -2,7 +2,7 @@
 
 namespace Api.Models
 {
-    public class LoginModel
+    public class Login
     {
         [Required]
         [EmailAddress]

@@ -1,18 +1,19 @@
+using Api.Data;
 using Api.Extensions;
 using Api.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 namespace Api
 {
     public class Startup
     {
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
         
         public Startup(IConfiguration configuration)
         {
@@ -21,6 +22,8 @@ namespace Api
         
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<Context>(options =>
+                options.UseNpgsql(this.Configuration.GetConnectionString("ScienceAccess")));
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Api", Version = "v1"}); });
 
