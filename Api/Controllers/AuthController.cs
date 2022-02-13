@@ -30,6 +30,13 @@ namespace Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] Register register)
         {
+            bool emailExists = await _db.Users.AnyAsync(u => u.Email == register.Email);
+
+            if (emailExists)
+            {
+                return Conflict("This email already registered");
+            }
+
             try
             {
                 await _db.Users.AddAsync(new User()
