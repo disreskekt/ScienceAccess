@@ -25,6 +25,7 @@ namespace Api
             services.AddDbContext<Context>(options =>
                 options.UseNpgsql(this.Configuration.GetConnectionString("ScienceAccess")));
             services.AddControllers();
+            services.AddCors();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Api", Version = "v1"}); });
 
             AuthOptions authOptions = services.AddAuthOptions(this.Configuration);
@@ -45,6 +46,8 @@ namespace Api
 
             app.UseRouting();
 
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            
             app.UseAuthentication();
             app.UseAuthorization();
 
