@@ -36,7 +36,7 @@ namespace Api.Migrations
                         new
                         {
                             Id = 1,
-                            RoleName = "Administrator"
+                            RoleName = "Admin"
                         },
                         new
                         {

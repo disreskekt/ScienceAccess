@@ -48,7 +48,7 @@ namespace Api.Migrations
                 columns: new[] { "Id", "RoleName" },
                 values: new object[,]
                 {
-                    { 1, "Administrator" },
+                    { 1, "Admin" },
                     { 2, "User" }
                 });
 
