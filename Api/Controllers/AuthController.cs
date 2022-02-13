@@ -46,7 +46,7 @@ namespace Api.Controllers
                     Password = register.Password,
                     Name = register.Name,
                     SurName = register.SurName,
-                    RoleId = 1
+                    RoleId = 2
                 });
 
                 await _db.SaveChangesAsync();
