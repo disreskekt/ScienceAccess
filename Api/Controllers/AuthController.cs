@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Api.Data;
 using Api.Models;
 using Api.Options;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -80,10 +81,43 @@ namespace Api.Controllers
                 return BadRequest(e.Message);
             }
         }
+        
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminLogin([FromBody] Login login)
+        {
+            try
+            {
+                User user = await AuthenticateAdmin(login.Email, login.Password);
+
+                if (user is null)
+                {
+                    return Unauthorized();
+                }
+
+                string token = GenerateJwt(user);
+
+                return Ok(token);
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
         private async Task<User> AuthenticateUser(string email, string password)
         {
-            return await _db.Users.Where(u => u.Email == email && u.Password == password).Include(u => u.Role).FirstOrDefaultAsync();
+            return await _db.Users.Where(u => u.Email == email && u.Password == password)
+                                  .Include(u => u.Role)
+                                  .FirstOrDefaultAsync();
+        }
+        
+        private async Task<User> AuthenticateAdmin(string email, string password)
+        {
+            return await _db.Users.Include(u => u.Role)
+                                  .Where(u => u.Email == email && u.Password == password && u.Role.RoleName == "Admin")
+                                  .FirstOrDefaultAsync();
         }
 
         private string GenerateJwt(User user)
