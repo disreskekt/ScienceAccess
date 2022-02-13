@@ -83,7 +83,6 @@ namespace Api.Controllers
         }
         
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AdminLogin([FromBody] Login login)
         {
             try
