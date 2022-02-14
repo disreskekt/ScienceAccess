@@ -1,4 +1,6 @@
-﻿namespace Api.Models
+﻿using System.Collections.Generic;
+
+namespace Api.Models
 {
     public class User
     {
@@ -7,7 +9,10 @@
         public string Password { get; set; }
         public string Name { get; set; }
         public string SurName { get; set; }
+        
         public int RoleId { get; set; }
         public Role Role { get; set; }
+        
+        public List<Ticket> Tickets { get; set; }
     }
 }

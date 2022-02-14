@@ -5,9 +5,13 @@ namespace Api.Data
 {
     public class Context : DbContext
     {
-        public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
-        
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<Task> Tasks { get; set; }
+        public DbSet<TicketStatus> TicketStatuses { get; set; }
+        public DbSet<TaskStatus> TaskStatuses { get; set; }
+
         public Context(DbContextOptions<Context> options)
             : base(options)
         {
