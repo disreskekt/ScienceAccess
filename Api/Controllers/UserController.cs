@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Api.Data;
 using Api.Models;
@@ -21,9 +22,18 @@ namespace Api.Controllers
         }
         
         [HttpGet]
-        public async Task<List<User>> GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            return await _db.Users.ToListAsync();
+            try
+            {
+                List<User> usersList = await _db.Users.ToListAsync();
+
+                return Ok(usersList);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }
