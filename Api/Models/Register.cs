@@ -4,9 +4,9 @@ namespace Api.Models
 {
     public class Register : Login
     {
-        [Required]
+        [Required(ErrorMessage = "Не указан Email")]
         public string Name { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Не указан пароль")]
         public string SurName { get; set; }
     }
 }

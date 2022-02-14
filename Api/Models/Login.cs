@@ -4,11 +4,11 @@ namespace Api.Models
 {
     public class Login
     {
-        [Required]
+        [Required(ErrorMessage = "Не указан Email")]
         [EmailAddress]
         public string Email { get; set; }
     
-        [Required]
+        [Required(ErrorMessage = "Не указан пароль")]
         public string Password { get; set; }
     }
 }
