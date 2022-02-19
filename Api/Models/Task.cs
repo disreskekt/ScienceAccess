@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Api.Models.Enums;
 
 namespace Api.Models
 {
@@ -10,7 +11,7 @@ namespace Api.Models
         [ForeignKey("Ticket")]
         public Guid Id { get; set; }
         public string Comment { get; set; }
-        public TaskStatus TaskStatus { get; set; }
+        public TaskStatuses Status { get; set; }
         public Ticket Ticket { get; set; }
     }
 }

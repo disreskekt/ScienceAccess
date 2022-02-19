@@ -1,4 +1,6 @@
-﻿using Api.Models;
+﻿using Api.Extensions;
+using Api.Models;
+using Api.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Data
@@ -9,8 +11,6 @@ namespace Api.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<Task> Tasks { get; set; }
-        public DbSet<TicketStatus> TicketStatuses { get; set; }
-        public DbSet<TaskStatus> TaskStatuses { get; set; }
 
         public Context(DbContextOptions<Context> options)
             : base(options)
@@ -42,7 +42,12 @@ namespace Api.Data
                     Name = "Init",
                     SurName = "User",
                     RoleId = 2
-                });
+                }
+            );
+            
+            modelBuilder.EnumToStringConversion<Ticket, TicketExpirationStatuses>(t => t.ExpirationStatus);
+            modelBuilder.EnumToStringConversion<Ticket, TicketUsageStatuses>(t => t.UsageStatus);
+            modelBuilder.EnumToStringConversion<Task, TaskStatuses>(t => t.Status);
         }
     }
 }

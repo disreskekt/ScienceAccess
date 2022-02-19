@@ -9,6 +9,7 @@ namespace Api.Models
         public string Password { get; set; }
         public string Name { get; set; }
         public string SurName { get; set; }
+        public bool TicketRequest { get; set; }
         
         public int RoleId { get; set; }
         public Role Role { get; set; }

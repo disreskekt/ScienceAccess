@@ -81,29 +81,6 @@ namespace Api.Controllers
                 return BadRequest(e.Message);
             }
         }
-        
-        [HttpPost]
-        public async Task<IActionResult> AdminLogin([FromBody] Login login)
-        {
-            try
-            {
-                User user = await AuthenticateAdmin(login.Email, login.Password);
-
-                if (user is null)
-                {
-                    return Unauthorized();
-                }
-
-                string token = GenerateJwt(user);
-
-                return Ok(token);
-
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
 
         private async Task<User> AuthenticateUser(string email, string password)
         {
