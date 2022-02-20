@@ -31,7 +31,7 @@ namespace Api.Data
                     Email = "base@base.base",
                     Password = "qwerty",
                     Name = "Base",
-                    SurName = "Admin",
+                    Lastname = "Admin",
                     RoleId = 1
                 },
                 new User()
@@ -40,13 +40,11 @@ namespace Api.Data
                     Email = "init@init.init",
                     Password = "qwerty",
                     Name = "Init",
-                    SurName = "User",
+                    Lastname = "User",
                     RoleId = 2
                 }
             );
             
-            modelBuilder.EnumToStringConversion<Ticket, TicketExpirationStatuses>(t => t.ExpirationStatus);
-            modelBuilder.EnumToStringConversion<Ticket, TicketUsageStatuses>(t => t.UsageStatus);
             modelBuilder.EnumToStringConversion<Task, TaskStatuses>(t => t.Status);
         }
     }

@@ -8,7 +8,7 @@ namespace Api.Models
         public string Email { get; set; }
         public string Password { get; set; }
         public string Name { get; set; }
-        public string SurName { get; set; }
+        public string Lastname { get; set; }
         public bool TicketRequest { get; set; }
         
         public int RoleId { get; set; }

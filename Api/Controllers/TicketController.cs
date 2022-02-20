@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api.Data;
 using Api.Models;
-using Api.Models.Enums;
+using Api.Models.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +29,7 @@ namespace Api.Controllers
             {
                 int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
 
-                User user = _db.Users.Include(user => user.Tickets).FirstOrDefault(user => user.Id == userId);
+                User user = await _db.Users.Include(user => user.Tickets).FirstOrDefaultAsync(user => user.Id == userId);
 
                 if (user is null)
                 {
@@ -93,10 +93,6 @@ namespace Api.Controllers
                         StartTime = giveTicketModel.StartTime,
                         EndTime = giveTicketModel.EndTime,
                         AvailableDuration = giveTicketModel.Duration,
-                        ExpirationStatus = giveTicketModel.StartTime >= DateTime.Now
-                            ? TicketExpirationStatuses.Available
-                            : TicketExpirationStatuses.Pending,
-                        UsageStatus = TicketUsageStatuses.NotUsed,
                         IsCanceled = false,
                     }
                 );

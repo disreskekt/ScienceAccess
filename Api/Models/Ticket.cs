@@ -18,18 +18,53 @@ namespace Api.Models
         public DateTime EndTime { get; set; }
         public int AvailableDuration { get; set; }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        // [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        [NotMapped]
         public bool IsActive
         {
             get =>
                 this.IsCanceled == false &&
-                this.ExpirationStatus.ToString().Equals(TicketExpirationStatuses.Pending.ToString()) ||
-                this.IsCanceled == false && this.ExpirationStatus.ToString().Equals(TicketExpirationStatuses.Available.ToString()) &&
-                !this.UsageStatus.ToString().Equals(TicketUsageStatuses.Used.ToString());
-            private set {}
+                (this.ExpirationStatus == TicketExpirationStatuses.Pending ||
+                 this.ExpirationStatus == TicketExpirationStatuses.Available &&
+                 this.UsageStatus != TicketUsageStatuses.Used);
         }
-        public TicketExpirationStatuses ExpirationStatus { get; set; }
-        public TicketUsageStatuses UsageStatus { get; set; }
+
+        [NotMapped]
+        public TicketExpirationStatuses ExpirationStatus
+        {
+            get
+            {
+                if (DateTime.Now < this.StartTime)
+                {
+                    return TicketExpirationStatuses.Pending;
+                }
+                if (DateTime.Now >= this.StartTime && DateTime.Now < this.EndTime)
+                {
+                    return TicketExpirationStatuses.Available;
+                }
+                
+                return TicketExpirationStatuses.Expired;
+            }
+        }
+
+        [NotMapped]
+        public TicketUsageStatuses UsageStatus
+        {
+            get
+            {
+                if (this.Task is null)
+                {
+                    return TicketUsageStatuses.NotUsed;
+                }
+                return this.Task.Status switch
+                {
+                    TaskStatuses.NotStarted => TicketUsageStatuses.NotUsed,
+                    TaskStatuses.InProgress => TicketUsageStatuses.InUse,
+                    _ => TicketUsageStatuses.Used
+                };
+            }
+            
+        }
         public bool IsCanceled { get; set; }
         
         public Task Task { get; set; }

@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Api.Data;
 using Api.Models;
+using Api.Models.Dtos;
 using Api.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -45,7 +46,7 @@ namespace Api.Controllers
                     Email = register.Email,
                     Password = register.Password,
                     Name = register.Name,
-                    SurName = register.SurName,
+                    Lastname = register.Lastname,
                     RoleId = 2
                 });
 
@@ -111,7 +112,7 @@ namespace Api.Controllers
                 issuer: _authOptions.Issuer,
                 audience: _authOptions.Audience,
                 claims: claims,
-                expires: DateTime.Now.AddSeconds(_authOptions.TokenLifeTime),
+                expires: DateTime.Now.AddMinutes(_authOptions.TokenLifeTime),
                 signingCredentials: credentials
             );
 

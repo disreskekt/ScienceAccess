@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Api.Models
+namespace Api.Models.Dtos
 {
     public class Register : Login
     {
         [Required(ErrorMessage = "Не указан Email")]
         public string Name { get; set; }
         [Required(ErrorMessage = "Не указан пароль")]
-        public string SurName { get; set; }
+        public string Lastname { get; set; }
     }
 }
