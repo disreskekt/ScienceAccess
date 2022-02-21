@@ -24,7 +24,9 @@ namespace Api
         {
             services.AddDbContext<Context>(options =>
                 options.UseNpgsql(this.Configuration.GetConnectionString("ScienceAccess")));
-            services.AddControllers();
+            services.AddControllers()
+                .AddNewtonsoftJson(options =>
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddCors();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Api", Version = "v1"}); });
 

@@ -18,17 +18,16 @@ namespace Api.Models
         public DateTime EndTime { get; set; }
         public int AvailableDuration { get; set; }
 
-        // [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         [NotMapped]
         public bool IsActive
         {
             get =>
                 this.IsCanceled == false &&
                 (this.ExpirationStatus == TicketExpirationStatuses.Pending ||
-                 this.ExpirationStatus == TicketExpirationStatuses.Available &&
-                 this.UsageStatus != TicketUsageStatuses.Used);
+                 (this.ExpirationStatus == TicketExpirationStatuses.Available &&
+                 this.UsageStatus != TicketUsageStatuses.Used));
         }
-
+        
         [NotMapped]
         public TicketExpirationStatuses ExpirationStatus
         {
@@ -46,7 +45,7 @@ namespace Api.Models
                 return TicketExpirationStatuses.Expired;
             }
         }
-
+        
         [NotMapped]
         public TicketUsageStatuses UsageStatus
         {
@@ -56,6 +55,7 @@ namespace Api.Models
                 {
                     return TicketUsageStatuses.NotUsed;
                 }
+                
                 return this.Task.Status switch
                 {
                     TaskStatuses.NotStarted => TicketUsageStatuses.NotUsed,
@@ -63,7 +63,6 @@ namespace Api.Models
                     _ => TicketUsageStatuses.Used
                 };
             }
-            
         }
         public bool IsCanceled { get; set; }
         
