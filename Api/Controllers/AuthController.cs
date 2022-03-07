@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Api.Data;
+using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Options;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -41,18 +42,25 @@ namespace Api.Controllers
 
             try
             {
+                string hashString = register.Password.GenerateVerySecretHash(register.Email);
+
                 await _db.Users.AddAsync(new User()
                 {
                     Email = register.Email,
-                    Password = register.Password,
+                    Password = hashString,
                     Name = register.Name,
                     Lastname = register.Lastname,
+                    TicketRequest = false,
                     RoleId = 2
                 });
 
                 await _db.SaveChangesAsync();
 
-                return await Login(new Login() {Email = register.Email, Password = register.Password});
+                return await Login(new Login()
+                {
+                    Email = register.Email,
+                    Password = register.Password
+                });
             }
             catch (Exception e)
             {
@@ -85,15 +93,7 @@ namespace Api.Controllers
 
         private async Task<User> AuthenticateUser(string email, string password)
         {
-            return await _db.Users.Where(u => u.Email == email && u.Password == password)
-                                  .Include(u => u.Role)
-                                  .FirstOrDefaultAsync();
-        }
-        
-        private async Task<User> AuthenticateAdmin(string email, string password)
-        {
-            return await _db.Users.Include(u => u.Role)
-                                  .Where(u => u.Email == email && u.Password == password && u.Role.RoleName == "Admin")
+            return await _db.Users.Where(u => u.Email == email && u.Password == password.GenerateVerySecretHash(email))
                                   .FirstOrDefaultAsync();
         }
 
@@ -101,7 +101,9 @@ namespace Api.Controllers
         {
             SymmetricSecurityKey securityKey = _authOptions.GetSymmetricSecurityKey();
             SigningCredentials credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
+            
+            _db.Entry(user).Reference(u => u.Role).Load();
+            
             List<Claim> claims = new List<Claim>()
             {
                 new Claim("id", user.Id.ToString()),

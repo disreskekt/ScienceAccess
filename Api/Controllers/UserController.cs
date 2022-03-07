@@ -16,7 +16,7 @@ namespace Api.Controllers
 {
     [ApiController]
     [Route("[controller]/[action]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly Context _db;
@@ -28,7 +28,39 @@ namespace Api.Controllers
             _mapper = mapper;
         }
         
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePassword changePasswordModel)
+        {
+            try
+            {
+                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+
+                User user = await _db.Users.FindAsync(userId);
+
+                if (user is null)
+                {
+                    return BadRequest("Пользователь не существует");
+                }
+
+                if (user.Password != changePasswordModel.OldPassword.GenerateVerySecretHash(user.Email))
+                {
+                    return Forbid("Неверный пароль");
+                }
+
+                user.Password = changePasswordModel.NewPassword.GenerateVerySecretHash(user.Email);
+
+                await _db.SaveChangesAsync();
+
+                return Ok("Пароль изменен");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -46,6 +78,7 @@ namespace Api.Controllers
         }
         
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUser([FromQuery] int id)
         {
             try
@@ -63,6 +96,30 @@ namespace Api.Controllers
                 UserDto userDto = _mapper.Map<UserDto>(user);
 
                 return Ok(userDto);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
+        [HttpDelete]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteUser([FromQuery] int id)
+        {
+            try
+            {
+                User user = await _db.Users.FindAsync(id);
+
+                if (user is null)
+                {
+                    return BadRequest("Пользователь не существует");
+                }
+
+                _db.Users.Remove(user);
+                await _db.SaveChangesAsync();
+
+                return Ok("Пользователь удален");
             }
             catch (Exception e)
             {

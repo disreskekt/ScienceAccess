@@ -83,7 +83,8 @@ namespace Api.Controllers
                     return BadRequest("Продолжительность задачи должна быть больше нуля");
                 }
                 
-                User user = await _db.Users.Include(user => user.Tickets).FirstOrDefaultAsync(user => user.Id == giveTicketsModel.ReceiverId);
+                User user = await _db.Users.Include(user => user.Tickets)
+                    .FirstOrDefaultAsync(user => user.Id == giveTicketsModel.ReceiverId);
 
                 if (user is null)
                 {
