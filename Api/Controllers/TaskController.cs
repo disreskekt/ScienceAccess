@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Api.Data;
+using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
@@ -36,14 +37,14 @@ namespace Api.Controllers
                     return BadRequest("Тикет не существует");
                 }
 
-                if (!ticket.IsActive)
+                if (!ticket.CanBeUsedRightNow())
                 {
                     return Forbid("Тикет не может быть использован");
                 }
                 
                 if (ticket.Task is not null)
                 {
-                    return Forbid("Тикета уже имеет связанную задачу");
+                    return Forbid("Тикет уже имеет связанную задачу");
                 }
                 
                 ticket.Task = new TicketTask()
@@ -56,7 +57,7 @@ namespace Api.Controllers
 
                 await _db.SaveChangesAsync();
 
-                return Ok("Задача создана");
+                return Ok("Задача запущена");
             }
             catch (Exception e)
             {

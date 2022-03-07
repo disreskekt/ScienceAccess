@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Data;
+using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +19,13 @@ namespace Api.Controllers
     [Authorize(Roles = "Admin")]
     public class UserController : ControllerBase
     {
-        private readonly Context _db; 
-        
-        public UserController(Context context)
+        private readonly Context _db;
+        private readonly IMapper _mapper;
+
+        public UserController(Context context, IMapper mapper)
         {
             _db = context;
+            _mapper = mapper;
         }
         
         [HttpGet]
@@ -29,40 +33,36 @@ namespace Api.Controllers
         {
             try
             {
-                List<UserDto> usersList = await _db.Users.Select(user => new UserDto()
-                { //todo refactor this ugly too its just IsActive == true
-                    Id = user.Id,
-                    FullName = user.Name + " " + user.Lastname,
-                    TicketRequest = user.TicketRequest,
-                    ActiveTicket = user.Tickets.FirstOrDefault(ticket =>
-                        ticket.IsCanceled == false && (ticket.StartTime > DateTime.Now ||
-                                                       ((ticket.StartTime <= DateTime.Now &&
-                                                         ticket.EndTime > DateTime.Now) &&
-                                                        (ticket.Task.Status == TaskStatuses.Done ||
-                                                         ticket.Task.Status == TaskStatuses.Failed)))) != null
-                        ? user.Tickets.FirstOrDefault(ticket =>
-                            ticket.IsCanceled == false && (ticket.StartTime > DateTime.Now ||
-                                                           ((ticket.StartTime <= DateTime.Now &&
-                                                             ticket.EndTime > DateTime.Now) &&
-                                                            (ticket.Task.Status == TaskStatuses.Done ||
-                                                             ticket.Task.Status == TaskStatuses.Failed)))).Id
-                        : null,
-                    TaskStatus = user.Tickets.FirstOrDefault(ticket =>
-                        ticket.IsCanceled == false && (ticket.StartTime > DateTime.Now ||
-                                                       ((ticket.StartTime <= DateTime.Now &&
-                                                         ticket.EndTime > DateTime.Now) &&
-                                                        (ticket.Task.Status == TaskStatuses.Done ||
-                                                         ticket.Task.Status == TaskStatuses.Failed)))) != null
-                        ? user.Tickets.FirstOrDefault(ticket =>
-                            ticket.IsCanceled == false && (ticket.StartTime > DateTime.Now ||
-                                                           ((ticket.StartTime <= DateTime.Now &&
-                                                             ticket.EndTime > DateTime.Now) &&
-                                                            (ticket.Task.Status == TaskStatuses.Done ||
-                                                             ticket.Task.Status == TaskStatuses.Failed)))).Task.Status
-                        : null,
-                }).ToListAsync();
+                List<User> usersList = await _db.Users.ToListAsync();
 
-                return Ok(usersList);
+                List<AllUsersDto> userDtosList = _mapper.Map<List<AllUsersDto>>(usersList);
+                
+                return Ok(userDtosList);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
+        [HttpGet]
+        public async Task<IActionResult> GetUser([FromQuery] int id)
+        {
+            try
+            {
+                User user = await _db.Users
+                    .Include(user => user.Role)
+                    .Include(user => user.Tickets)
+                    .FirstOrDefaultAsync(user => user.Id == id);
+
+                if (user is null)
+                {
+                    return BadRequest("Пользователь не существует");
+                }
+
+                UserDto userDto = _mapper.Map<UserDto>(user);
+
+                return Ok(userDto);
             }
             catch (Exception e)
             {

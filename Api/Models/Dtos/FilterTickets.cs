@@ -2,9 +2,8 @@
 
 namespace Api.Models.Dtos
 {
-    public class GetTickets
+    public class FilterTickets
     {
-        public bool? Active { get; set; }
         public bool? Canceled { get; set; }
         public TicketExpirationStatuses? ExpirationStatus { get; set; }
         public TicketUsageStatuses? UsageStatus { get; set; }

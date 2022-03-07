@@ -1,23 +1,23 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Api.Models.Enums;
 
-namespace Api.Models
+namespace Api.Models.Dtos
 {
-    public class Ticket
+    public class TicketDto
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Key]
         public Guid Id { get; set; }
         
         public int UserId { get; set; }
-        public User User { get; set; }
         
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public int AvailableDuration { get; set; }
+        
         public bool IsCanceled { get; set; }
         
-        public Task Task { get; set; }
+        public TicketExpirationStatuses ExpirationStatus { get; set; }
+        public TicketUsageStatuses UsageStatus { get; set; }
+        
+        public Guid? TaskId { get; set; }
     }
 }

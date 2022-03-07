@@ -4,9 +4,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Api.Data;
+using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +21,12 @@ namespace Api.Controllers
     public class TicketController : ControllerBase
     {
         private readonly Context _db;
+        private readonly IMapper _mapper;
 
-        public TicketController(Context context)
+        public TicketController(Context context, IMapper mapper)
         {
             _db = context;
+            _mapper = mapper;
         }
 
         [HttpPost]
@@ -46,13 +50,6 @@ namespace Api.Controllers
                     return Forbid("Тикет уже запрошен");
                 }
 
-                bool hasActiveTicket = user.Tickets.Any(ticket => ticket.IsActive);
-
-                if (hasActiveTicket)
-                {
-                    return Forbid("Уже есть активный тикет");
-                }
-
                 user.TicketRequest = true;
                 //todo maybe some notification
                 await _db.SaveChangesAsync();
@@ -67,38 +64,48 @@ namespace Api.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GiveTicket([FromBody] GiveTicket giveTicketModel)
+        public async Task<IActionResult> GiveTickets([FromBody] GiveTickets giveTicketsModel)
         {
             try
             {
-                User user = await _db.Users.Include(user => user.Tickets).FirstOrDefaultAsync(user => user.Id == giveTicketModel.ReceiverId);
+                if (giveTicketsModel.Count < 1)
+                {
+                    return BadRequest("Невозможно выдать меньше одного тикета");
+                }
+                
+                if (giveTicketsModel.EndTime <= DateTime.Now)
+                {
+                    return BadRequest("Вы пытаетесь выдать просроченный тикет");
+                }
+
+                if (giveTicketsModel.Duration <= 0)
+                {
+                    return BadRequest("Продолжительность задачи должна быть больше нуля");
+                }
+                
+                User user = await _db.Users.Include(user => user.Tickets).FirstOrDefaultAsync(user => user.Id == giveTicketsModel.ReceiverId);
 
                 if (user is null)
                 {
                     return BadRequest("Пользователь не существует");
                 }
 
-                if (user.Tickets.Any(ticket => ticket.IsActive))
-                {
-                    return Forbid("Пользователь имеет активный тикет");
-                }
-
-                if (giveTicketModel.EndTime <= DateTime.Now)
-                {
-                    return BadRequest("Вы пытаетесь выдать просроченный тикет");
-                }
-
                 user.TicketRequest = false;
-                user.Tickets.Add(
-                    new Ticket()
+
+                Ticket[] newTickets = new Ticket[giveTicketsModel.Count];
+                for (int i = 0; i < giveTicketsModel.Count; i++)
+                {
+                    newTickets[i] = new Ticket()
                     {
                         UserId = user.Id,
-                        StartTime = giveTicketModel.StartTime,
-                        EndTime = giveTicketModel.EndTime,
-                        AvailableDuration = giveTicketModel.Duration,
+                        StartTime = giveTicketsModel.StartTime,
+                        EndTime = giveTicketsModel.EndTime,
+                        AvailableDuration = giveTicketsModel.Duration,
                         IsCanceled = false,
-                    }
-                );
+                    };
+                }
+                
+                user.Tickets.AddRange(newTickets);
                 
                 await _db.SaveChangesAsync();
 
@@ -112,56 +119,35 @@ namespace Api.Controllers
         
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll([FromBody] GetTickets getTicketsModel)
+        public async Task<IActionResult> GetAll([FromBody] FilterTickets filterTicketsModel)
         {
             try
             {
-                //todo refactor this ugly
-                Expression<Func<Ticket, bool>>[] expressionsArray = new Expression<Func<Ticket, bool>>[4];
+                Expression<Func<Ticket, bool>>[] expressionsArray = new Expression<Func<Ticket, bool>>[3];
 
-                expressionsArray[0] = getTicketsModel.Active switch
-                {
-                    true => ticket => ticket.IsCanceled == false && (ticket.StartTime > DateTime.Now ||
-                                                                     ((ticket.StartTime <= DateTime.Now &&
-                                                                       ticket.EndTime > DateTime.Now) &&
-                                                                      (ticket.Task.Status == TaskStatuses.Done ||
-                                                                       ticket.Task.Status == TaskStatuses.Failed))),
-                    false => ticket => !(ticket.IsCanceled == false && (ticket.StartTime > DateTime.Now ||
-                                                                      ((ticket.StartTime <= DateTime.Now &&
-                                                                        ticket.EndTime > DateTime.Now) &&
-                                                                       (ticket.Task.Status == TaskStatuses.Done ||
-                                                                        ticket.Task.Status == TaskStatuses.Failed)))),
-                    null => null
-                };
-
-                expressionsArray[1] = getTicketsModel.Canceled switch
+                expressionsArray[0] = filterTicketsModel.Canceled switch
                 {
                     true => ticket => ticket.IsCanceled == true,
                     false => ticket => ticket.IsCanceled == false,
                     null => null
                 };
 
-                expressionsArray[2] = getTicketsModel.ExpirationStatus switch
+                expressionsArray[1] = filterTicketsModel.ExpirationStatus switch
                 {
-                    TicketExpirationStatuses.Pending => ticket =>
-                        ticket.StartTime > DateTime.Now,
-                    TicketExpirationStatuses.Available => ticket =>
-                        ticket.StartTime <= DateTime.Now && ticket.EndTime > DateTime.Now,
-                    TicketExpirationStatuses.Expired => ticket =>
-                        ticket.EndTime <= DateTime.Now,
+                    TicketExpirationStatuses.Pending => ticket => ticket.IsPending(),
+                    TicketExpirationStatuses.Available => ticket => ticket.IsAvailable(),
+                    TicketExpirationStatuses.Expired => ticket => ticket.IsExpired(),
                     null => null,
-                    _ => throw new ArgumentOutOfRangeException(nameof(getTicketsModel.UsageStatus))
+                    _ => throw new ArgumentOutOfRangeException(nameof(filterTicketsModel.UsageStatus))
                 };
 
-                expressionsArray[3] = getTicketsModel.UsageStatus switch
+                expressionsArray[2] = filterTicketsModel.UsageStatus switch
                 {
-                    TicketUsageStatuses.NotUsed => ticket => ticket.Task == null ||
-                                                             ticket.Task.Status == TaskStatuses.NotStarted,
-                    TicketUsageStatuses.InUse => ticket => ticket.Task.Status == TaskStatuses.InProgress,
-                    TicketUsageStatuses.Used => ticket => ticket.Task.Status == TaskStatuses.Done ||
-                                                          ticket.Task.Status == TaskStatuses.Failed,
+                    TicketUsageStatuses.NotUsed => ticket => ticket.IsNotUsed(),
+                    TicketUsageStatuses.InUse => ticket => ticket.IsInUse(),
+                    TicketUsageStatuses.Used => ticket => ticket.IsUsed(),
                     null => null,
-                    _ => throw new ArgumentOutOfRangeException(nameof(getTicketsModel.UsageStatus))
+                    _ => throw new ArgumentOutOfRangeException(nameof(filterTicketsModel.UsageStatus))
                 };
 
                 IQueryable<Ticket> dbTickets = _db.Tickets.Include(ticket => ticket.Task).AsQueryable();
@@ -176,7 +162,9 @@ namespace Api.Controllers
                     dbTickets = dbTickets.Where(expression);
                 }
 
-                return Ok(await dbTickets.ToListAsync());
+                List<TicketDto> ticketDtos = _mapper.Map<List<TicketDto>>(await dbTickets.ToListAsync());
+                
+                return Ok(ticketDtos);
             }
             catch (Exception e)
             {
