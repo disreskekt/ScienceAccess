@@ -44,7 +44,7 @@ namespace Api.Controllers
 
                 if (user.Password != changePasswordModel.OldPassword.GenerateVerySecretHash(user.Email))
                 {
-                    return Forbid("Неверный пароль");
+                    return BadRequest("Неверный пароль");
                 }
 
                 user.Password = changePasswordModel.NewPassword.GenerateVerySecretHash(user.Email);

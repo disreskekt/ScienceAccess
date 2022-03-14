@@ -47,7 +47,7 @@ namespace Api.Controllers
 
                 if (hasTicketRequest)
                 {
-                    return Forbid("Тикет уже запрошен");
+                    return BadRequest("Тикет уже запрошен");
                 }
 
                 user.TicketRequest = true;

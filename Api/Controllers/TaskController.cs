@@ -39,12 +39,12 @@ namespace Api.Controllers
 
                 if (!ticket.CanBeUsedRightNow())
                 {
-                    return Forbid("Тикет не может быть использован");
+                    return BadRequest("Тикет не может быть использован");
                 }
                 
                 if (ticket.Task is not null)
                 {
-                    return Forbid("Тикет уже имеет связанную задачу");
+                    return BadRequest("Тикет уже имеет связанную задачу");
                 }
                 
                 ticket.Task = new TicketTask()
