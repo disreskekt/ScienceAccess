@@ -29,7 +29,7 @@ namespace Api.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> RequestTicket()
         {
             try
