@@ -4,9 +4,9 @@ namespace Api.Models.Dtos
 {
     public class Register : Login
     {
-        [Required(ErrorMessage = "Не указан Email")]
+        [Required(ErrorMessage = "Email not specified")]
         public string Name { get; set; }
-        [Required(ErrorMessage = "Не указан пароль")]
+        [Required(ErrorMessage = "Password not specified")]
         public string Lastname { get; set; }
     }
 }

@@ -4,11 +4,11 @@ namespace Api.Models.Dtos
 {
     public class Login
     {
-        [Required(ErrorMessage = "Не указан Email")]
-        [EmailAddress(ErrorMessage = "Почта не соответствует формату")]
+        [Required(ErrorMessage = "Email not specified")]
+        [EmailAddress(ErrorMessage = "Email does not match the format")]
         public string Email { get; set; }
     
-        [Required(ErrorMessage = "Не указан пароль")]
+        [Required(ErrorMessage = "Password not specified")]
         public string Password { get; set; }
     }
 }

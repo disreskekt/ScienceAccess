@@ -13,7 +13,7 @@ namespace Api.Helpers
 
         public static bool CanBeUsed(this Ticket ticket)
         {
-            return ticket.IsCanceled == false && !ticket.IsExpired() && ticket.IsNotUsed(); //todo зачем? забыл
+            return ticket.IsCanceled == false && !ticket.IsExpired() && ticket.IsNotUsed(); //todo for what? I forgot
         }
 
         public static TicketExpirationStatuses GetExpirationStatus(this Ticket ticket)
@@ -33,7 +33,7 @@ namespace Api.Helpers
                 return TicketExpirationStatuses.Expired;
             }
 
-            throw new Exception("Что-то пошло не так, возможно временной статус изменился во время проверки");
+            throw new Exception("Something went wrong, possibly expiration status changed during checkout");
         }
         
         public static bool IsPending(this Ticket ticket)
@@ -68,7 +68,7 @@ namespace Api.Helpers
                 return TicketUsageStatuses.Used;
             }
 
-            throw new Exception("Что-то пошло не так, возможно статус использования изменился во время проверки");
+            throw new Exception("Something went wrong, possibly usage status changed during checkout");
         }
         
         public static bool IsNotUsed(this Ticket ticket)

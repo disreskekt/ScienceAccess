@@ -40,21 +40,21 @@ namespace Api.Controllers
 
                 if (user is null)
                 {
-                    return BadRequest("Пользователь не существует");
+                    return BadRequest("User doesn't exist");
                 }
 
                 bool hasTicketRequest = user.TicketRequest;
 
                 if (hasTicketRequest)
                 {
-                    return BadRequest("Тикет уже запрошен");
+                    return BadRequest("Ticket is already requested");
                 }
 
                 user.TicketRequest = true;
                 //todo maybe some notification
                 await _db.SaveChangesAsync();
 
-                return Ok("Тикет запрошен");
+                return Ok("Ticket is requested");
             }
             catch (Exception e)
             {
@@ -70,17 +70,17 @@ namespace Api.Controllers
             {
                 if (giveTicketsModel.Count < 1)
                 {
-                    return BadRequest("Невозможно выдать меньше одного тикета");
+                    return BadRequest("Can't give less than one ticket");
                 }
                 
                 if (giveTicketsModel.EndTime <= DateTime.Now)
                 {
-                    return BadRequest("Вы пытаетесь выдать просроченный тикет");
+                    return BadRequest("You are trying to give an expired ticket");
                 }
 
                 if (giveTicketsModel.Duration <= 0)
                 {
-                    return BadRequest("Продолжительность задачи должна быть больше нуля");
+                    return BadRequest("Task duration should be more than zero");
                 }
                 
                 User user = await _db.Users.Include(user => user.Tickets)
@@ -88,7 +88,7 @@ namespace Api.Controllers
 
                 if (user is null)
                 {
-                    return BadRequest("Пользователь не существует");
+                    return BadRequest("User doesn't exist");
                 }
 
                 user.TicketRequest = false;
@@ -110,7 +110,7 @@ namespace Api.Controllers
                 
                 await _db.SaveChangesAsync();
 
-                return Ok("Тикет выдан");
+                return Ok("Ticket issued");
             }
             catch (Exception e)
             {

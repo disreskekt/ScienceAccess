@@ -39,19 +39,19 @@ namespace Api.Controllers
 
                 if (user is null)
                 {
-                    return BadRequest("Пользователь не существует");
+                    return BadRequest("User doesn't exist");
                 }
 
                 if (user.Password != changePasswordModel.OldPassword.GenerateVerySecretHash(user.Email))
                 {
-                    return BadRequest("Неверный пароль");
+                    return BadRequest("Invalid password");
                 }
 
                 user.Password = changePasswordModel.NewPassword.GenerateVerySecretHash(user.Email);
 
                 await _db.SaveChangesAsync();
 
-                return Ok("Пароль изменен");
+                return Ok("Password changed successfully");
             }
             catch (Exception e)
             {
@@ -90,7 +90,7 @@ namespace Api.Controllers
 
                 if (user is null)
                 {
-                    return BadRequest("Пользователь не существует");
+                    return BadRequest("User doesn't exist");
                 }
 
                 UserDto userDto = _mapper.Map<UserDto>(user);
@@ -113,13 +113,13 @@ namespace Api.Controllers
 
                 if (user is null)
                 {
-                    return BadRequest("Пользователь не существует");
+                    return BadRequest("User doesn't exist");
                 }
 
                 _db.Users.Remove(user);
                 await _db.SaveChangesAsync();
 
-                return Ok("Пользователь удален");
+                return Ok("User deleted");
             }
             catch (Exception e)
             {

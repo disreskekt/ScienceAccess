@@ -43,17 +43,17 @@ namespace Api.Controllers
 
                 if (ticket is null)
                 {
-                    return BadRequest("Тикет не существует");
+                    return BadRequest("Ticket doesn't exist");
                 }
 
                 if (!ticket.CanBeUsedRightNow())
                 {
-                    return BadRequest("Тикет не может быть использован");
+                    return BadRequest("Ticket can't be used");
                 }
                 
                 if (ticket.Task is not null)
                 {
-                    return BadRequest("Тикет уже имеет связанную задачу");
+                    return BadRequest("Ticket is already assigned to the task");
                 }
 
                 if (createTaskModel.Files is null || createTaskModel.Files.Count < 1)
@@ -104,7 +104,7 @@ namespace Api.Controllers
 
                 await _db.SaveChangesAsync();
 
-                return Ok("Задача запущена");
+                return Ok("Task started");
             }
             catch (Exception e)
             {
