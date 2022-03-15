@@ -25,7 +25,7 @@ namespace Api.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> StartTask([FromBody]CreateTask createTaskModel)
+        public async Task<IActionResult> StartTask([FromForm]CreateTask createTaskModel)
         {
             try
             {
@@ -53,6 +53,7 @@ namespace Api.Controllers
                     Status = TaskStatuses.NotStarted,
                 };
                 
+                //todo check files
                 //todo some actions
 
                 await _db.SaveChangesAsync();
