@@ -51,6 +51,7 @@ namespace Api.Controllers
                 {
                     Comment = createTaskModel.Comment ?? String.Empty,
                     Status = TaskStatuses.NotStarted,
+                    //todo filesPaths
                 };
                 
                 //todo check files

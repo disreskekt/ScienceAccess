@@ -24,26 +24,6 @@ namespace Api.Data
                 new Role() {Id = 1, RoleName = "Admin"},
                 new Role() {Id = 2, RoleName = "User"}
                 );
-            modelBuilder.Entity<User>().HasData(
-                new User()
-                {
-                    Id = 1,
-                    Email = "base@base.base",
-                    Password = "qwerty",
-                    Name = "Base",
-                    Lastname = "Admin",
-                    RoleId = 1
-                },
-                new User()
-                {
-                    Id = 2,
-                    Email = "init@init.init",
-                    Password = "qwerty",
-                    Name = "Init",
-                    Lastname = "User",
-                    RoleId = 2
-                }
-            );
             
             modelBuilder.EnumToStringConversion<Task, TaskStatuses>(t => t.Status);
         }
