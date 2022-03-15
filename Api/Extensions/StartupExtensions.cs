@@ -32,16 +32,17 @@ namespace Api.Extensions
                 });
         }
 
-        public static AuthOptions AddAuthOptions(this IServiceCollection services, IConfiguration configuration)
+        public static TResult AddOptions<TResult>(this IServiceCollection services, IConfiguration configuration, string section)
+        where TResult : class, new()
         {
-            IConfigurationSection authOptionsSection = configuration.GetSection("Auth");
+            IConfigurationSection configSection = configuration.GetSection(section);
             
-            AuthOptions authOptions = new AuthOptions();
-            authOptionsSection.Bind(authOptions);
+            TResult result = new TResult();
+            configSection.Bind(result);
             
-            services.Configure<AuthOptions>(authOptionsSection);
+            services.Configure<TResult>(configSection);
 
-            return authOptions;
+            return result;
         }
     }
 }

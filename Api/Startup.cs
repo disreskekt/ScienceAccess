@@ -1,7 +1,6 @@
 using Api.Data;
 using Api.Extensions;
 using Api.Options;
-using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +32,10 @@ namespace Api
             services.AddCors();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Api", Version = "v1"}); });
 
-            AuthOptions authOptions = services.AddAuthOptions(this.Configuration);
+            services.AddOptions<LinuxCredentials>(this.Configuration, "Linux");
+            services.AddOptions<UserFolder>(this.Configuration, "UserFolder");
+            
+            AuthOptions authOptions = services.AddOptions<AuthOptions>(this.Configuration, "Auth");
             services.AddJwtAuthentication(authOptions);
             
             services.AddAutoMapper(typeof(MappingProfile));
