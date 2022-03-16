@@ -27,6 +27,16 @@ namespace Api
                     options => options.MapFrom(
                         source => source.Role.RoleName));
             
+            CreateMap<User, GetMyselfDto>()
+                .ForMember(
+                    dest => dest.FullName,
+                    options => options.MapFrom(
+                        source => source.Name + " " + source.Lastname))
+                .ForMember(
+                    dest => dest.RoleName,
+                    options => options.MapFrom(
+                        source => source.Role.RoleName));
+            
             CreateMap<Ticket, TicketDto>()
                 .ForMember(
                     dest => dest.ExpirationStatus,
@@ -39,7 +49,7 @@ namespace Api
                 .ForMember(
                     dest => dest.TaskStatus,
                     options => options.MapFrom(
-                        source => source.Task != null ? source.Task.Status : default(TaskStatuses?))); //todo does it return null
+                        source => source.Task != null ? source.Task.Status : default(TaskStatuses?)));
         }
     }
 }

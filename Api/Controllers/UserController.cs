@@ -6,7 +6,6 @@ using Api.Data;
 using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
-using Api.Models.Enums;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -96,6 +95,30 @@ namespace Api.Controllers
                 UserDto userDto = _mapper.Map<UserDto>(user);
 
                 return Ok(userDto);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
+        [HttpGet]
+        public async Task<IActionResult> GetMyself()
+        {
+            try
+            {
+                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+
+                User user = await _db.Users.FindAsync(userId);
+
+                if (user is null)
+                {
+                    return BadRequest("User doesn't exist");
+                }
+                
+                GetMyselfDto getMyselfDto = _mapper.Map<GetMyselfDto>(user);
+                
+                return Ok(getMyselfDto);
             }
             catch (Exception e)
             {
