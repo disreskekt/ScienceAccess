@@ -18,6 +18,6 @@ namespace Api.Models.Dtos
         public TicketExpirationStatuses ExpirationStatus { get; set; }
         public TicketUsageStatuses UsageStatus { get; set; }
         
-        public Guid? TaskId { get; set; }
+        public TaskStatuses? TaskStatus { get; set; }
     }
 }

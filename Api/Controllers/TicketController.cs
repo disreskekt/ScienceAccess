@@ -118,6 +118,31 @@ namespace Api.Controllers
             }
         }
         
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetTicket([FromQuery] Guid ticketId)
+        {
+            try
+            {
+                Ticket ticket = await _db.Tickets
+                    .Include(t => t.Task)
+                    .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+                if (ticket is null)
+                {
+                    return BadRequest("Ticket doesn't exist");
+                }
+
+                TicketDto ticketDto = _mapper.Map<TicketDto>(ticket);
+
+                return Ok(ticketDto);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll([FromBody] FilterTickets filterTicketsModel)
@@ -132,21 +157,22 @@ namespace Api.Controllers
                     false => ticket => ticket.IsCanceled == false,
                     null => null
                 };
-
+                //I can't use methods in expressions :(
                 expressionsArray[1] = filterTicketsModel.ExpirationStatus switch
                 {
-                    TicketExpirationStatuses.Pending => ticket => ticket.IsPending(),
-                    TicketExpirationStatuses.Available => ticket => ticket.IsAvailable(),
-                    TicketExpirationStatuses.Expired => ticket => ticket.IsExpired(),
+                    TicketExpirationStatuses.Pending => ticket => ticket.StartTime <= DateTime.Now && ticket.EndTime > DateTime.Now,
+                    TicketExpirationStatuses.Available => ticket => ticket.StartTime <= DateTime.Now && ticket.EndTime > DateTime.Now,
+                    TicketExpirationStatuses.Expired => ticket => ticket.EndTime <= DateTime.Now,
                     null => null,
                     _ => throw new ArgumentOutOfRangeException(nameof(filterTicketsModel.UsageStatus))
                 };
 
                 expressionsArray[2] = filterTicketsModel.UsageStatus switch
                 {
-                    TicketUsageStatuses.NotUsed => ticket => ticket.IsNotUsed(),
-                    TicketUsageStatuses.InUse => ticket => ticket.IsInUse(),
-                    TicketUsageStatuses.Used => ticket => ticket.IsUsed(),
+                    TicketUsageStatuses.NotUsed => ticket => ticket.Task == null || ticket.Task.Status == TaskStatuses.NotStarted,
+                    TicketUsageStatuses.InUse => ticket => ticket.Task != null && ticket.Task.Status == TaskStatuses.InProgress,
+                    TicketUsageStatuses.Used => ticket => ticket.Task != null &&
+                                                          (ticket.Task.Status == TaskStatuses.Done || ticket.Task.Status == TaskStatuses.Failed),
                     null => null,
                     _ => throw new ArgumentOutOfRangeException(nameof(filterTicketsModel.UsageStatus))
                 };

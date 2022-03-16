@@ -2,6 +2,7 @@
 using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
+using Api.Models.Enums;
 using AutoMapper;
 
 namespace Api
@@ -36,9 +37,9 @@ namespace Api
                     options => options.MapFrom(
                         source => source.GetUsageStatus()))
                 .ForMember(
-                    dest => dest.TaskId,
+                    dest => dest.TaskStatus,
                     options => options.MapFrom(
-                        source => source.Task.Id));
+                        source => source.Task != null ? source.Task.Status : default(TaskStatuses?))); //todo does it return null
         }
     }
 }
