@@ -112,5 +112,33 @@ namespace Api.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> StopTask([FromQuery] Guid taskId)
+        {
+            try
+            {
+                TicketTask task = await _db.Tasks.FindAsync(taskId);
+
+                if (task is null)
+                {
+                    return BadRequest("Task doesn't exist");
+                }
+
+                if (task.Status is not TaskStatuses.InProgress)
+                {
+                    return BadRequest("Task not in progress");
+                }
+                
+                //todo some actions
+
+                return Ok("Task stopped");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }
