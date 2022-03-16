@@ -112,10 +112,45 @@ namespace Api.Controllers
                 return BadRequest(e.Message);
             }
         }
+        
+        [HttpGet]
+        public async Task<IActionResult> StopTask([FromQuery] Guid ticketId)
+        {
+            try
+            {
+                Ticket ticket = await _db.Tickets.Include(t => t.Task)
+                    .FirstOrDefaultAsync(t => t.Id == ticketId);
+                
+                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
 
+                if (ticket.UserId != userId)
+                {
+                    return BadRequest("Task doesn't belong to you");
+                }
+                
+                if (ticket.Task is null)
+                {
+                    return BadRequest("Task doesn't exist");
+                }
+
+                if (ticket.Task.Status is not TaskStatuses.InProgress)
+                {
+                    return BadRequest("Task not in progress");
+                }
+                
+                //todo some actions
+
+                return Ok("Task stopped");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> StopTask([FromQuery] Guid taskId)
+        public async Task<IActionResult> StopTaskByAdmin([FromQuery] Guid taskId)
         {
             try
             {
