@@ -117,6 +117,34 @@ namespace Api.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpPut]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ChangeTicket([FromBody] ChangeTicket changeTicketModel)
+        {
+            try
+            {
+                Ticket ticket = await _db.Tickets.FindAsync(changeTicketModel.Id);
+                
+                if (ticket is null)
+                {
+                    return BadRequest("Ticket doesn't exist");
+                }
+
+                ticket.StartTime = changeTicketModel.StartTime ?? ticket.StartTime;
+                ticket.EndTime = changeTicketModel.EndTime ?? ticket.EndTime;
+                ticket.AvailableDuration = changeTicketModel.AvailableDuration ?? ticket.AvailableDuration;
+                ticket.IsCanceled = changeTicketModel.IsCanceled ?? ticket.IsCanceled;
+
+                await _db.SaveChangesAsync();
+
+                return Ok("Ticket changed");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         
         [HttpGet]
         [Authorize(Roles = "Admin")]
