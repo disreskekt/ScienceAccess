@@ -23,14 +23,14 @@ namespace Api.Helpers
             _client.Connect();
         }
         
-        public string CreateUserFolder(string fullname)
+        public string CreateUserFolder(string fullEnglishName)
         {
             if (!_client.Exists(_path))
             {
                 this.RestoreUserFolder();
             }
 
-            string userDirectory = $"{_path}/{fullname}-{DateTime.Now:yyyyMMddTHHmmss}";
+            string userDirectory = $"{_path}/{fullEnglishName}-{DateTime.Now:yyyyMMddTHHmmss}";
 
             _client.CreateDirectory(userDirectory);
 

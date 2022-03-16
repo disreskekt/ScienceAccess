@@ -86,7 +86,8 @@ namespace Api.Controllers
                 
                 using (SftpHelper sftpClient = new SftpHelper(_linuxCredentials, _userDirectoryPath))
                 {
-                    currentDirectory = sftpClient.CreateUserFolder(ticket.User.Lastname + ticket.User.Name);
+                    string fullEnglishName = (ticket.User.Lastname + ticket.User.Name).CastCyrillicToEnglish();
+                    currentDirectory = sftpClient.CreateUserFolder(fullEnglishName);
                     sendedFiles = sftpClient.SendFiles(createTaskModel.Files, currentDirectory);
                 }
                 

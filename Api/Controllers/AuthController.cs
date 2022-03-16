@@ -41,6 +41,11 @@ namespace Api.Controllers
                     return Conflict("This email already registered");
                 }
 
+                if (!ValidateName(register.Name) || !ValidateName(register.Lastname))
+                {
+                    return BadRequest("Incorrect name");
+                }
+                
                 if (!ValidatePassword(register.Password))
                 {
                     return BadRequest("Incorrect password");
@@ -135,7 +140,31 @@ namespace Api.Controllers
             foreach (char letter in pass)
             {
                 //a-z, A-Z, 0-9
-                if (!(letter >= 97 && letter <= 122 || letter >= 65 && letter <= 90 || letter >= 48 && letter <= 57))
+                if (!(letter.IsEnglishLower() ||
+                      letter.IsEnglishUpper() ||
+                      letter.IsDigit()))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        
+        private bool ValidateName(string name)
+        {
+            if (name.Length < 2 || name.Length > 24)
+            {
+                return false;
+            }
+
+            foreach (char letter in name)
+            {
+                //a-z, A-Z, а-я, А-Я
+                if (!(letter.IsEnglishLower() ||
+                      letter.IsEnglishUpper() ||
+                      letter.IsCyrillicLower() ||
+                      letter.IsCyrillicUpper()))
                 {
                     return false;
                 }
