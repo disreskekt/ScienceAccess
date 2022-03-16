@@ -47,7 +47,7 @@ namespace Api.Controllers
 
                 if (hasTicketRequest)
                 {
-                    return BadRequest("Ticket is already requested");
+                    return BadRequest("Ticket has already been requested");
                 }
 
                 user.TicketRequest = true;
