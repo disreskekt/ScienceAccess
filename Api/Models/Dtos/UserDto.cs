@@ -11,6 +11,6 @@ namespace Api.Models.Dtos
         
         public string RoleName { get; set; }
         
-        public List<Ticket> Tickets { get; set; }
+        public List<TicketDto> Tickets { get; set; }
     }
 }
