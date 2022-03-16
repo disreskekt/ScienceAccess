@@ -51,7 +51,7 @@ namespace Api.Controllers
 
                 await _db.SaveChangesAsync();
 
-                return Ok("Password changed successfully");
+                return Ok("Password changed");
             }
             catch (Exception e)
             {
