@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Api.Data;
 using Api.Helpers;
@@ -33,15 +32,20 @@ namespace Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] Register register)
         {
-            bool emailExists = await _db.Users.AnyAsync(u => u.Email == register.Email);
-
-            if (emailExists)
-            {
-                return Conflict("This email already registered");
-            }
-
             try
             {
+                bool emailExists = await _db.Users.AnyAsync(u => u.Email == register.Email);
+
+                if (emailExists)
+                {
+                    return Conflict("This email already registered");
+                }
+
+                if (!ValidatePassword(register.Password))
+                {
+                    return BadRequest("Incorrect password");
+                }
+
                 string hashString = register.Password.GenerateVerySecretHash(register.Email);
 
                 await _db.Users.AddAsync(new User()
@@ -119,6 +123,25 @@ namespace Api.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+        }
+
+        private bool ValidatePassword(string pass)
+        {
+            if (pass.Length < 8 || pass.Length > 24)
+            {
+                return false;
+            }
+
+            foreach (char letter in pass)
+            {
+                //a-z, A-Z, 0-9
+                if (!(letter >= 97 && letter <= 122 || letter >= 65 && letter <= 90 || letter >= 48 && letter <= 57))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
