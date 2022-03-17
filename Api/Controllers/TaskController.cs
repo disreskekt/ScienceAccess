@@ -32,14 +32,14 @@ namespace Api.Controllers
             _userDirectoryPath = userFolder.Value.Path;
             _linuxCredentials = linuxCredentials.Value;
         }
-        
+
         [HttpPost]
-        public async Task<IActionResult> StartTask([FromForm]CreateTask createTaskModel)
+        public async Task<IActionResult> UploadFiles([FromForm] UploadFilesDto uploadFilesModel)
         {
             try
             {
                 Ticket ticket = await _db.Tickets.Include(ticket => ticket.Task)
-                    .FirstOrDefaultAsync(ticket => ticket.Id == createTaskModel.TicketId);
+                    .FirstOrDefaultAsync(ticket => ticket.Id == uploadFilesModel.TicketId);
 
                 if (ticket is null)
                 {
@@ -51,12 +51,12 @@ namespace Api.Controllers
                     return BadRequest("Ticket can't be used");
                 }
                 
-                if (ticket.Task is not null)
+                if (ticket.Task.Status is not TaskStatuses.NotStarted)
                 {
-                    return BadRequest("Ticket is already assigned to the task");
+                    return BadRequest("Task can't use new files");
                 }
 
-                if (createTaskModel.Files is null || createTaskModel.Files.Count < 1)
+                if (uploadFilesModel.Files is null || uploadFilesModel.Files.Count < 1)
                 {
                     return BadRequest("No input files");
                 }
@@ -64,7 +64,7 @@ namespace Api.Controllers
                 Regex jobExtensionRegex = new Regex(@"^.*\.(job)$");
                 bool jobExtensionfound = false;
                 
-                foreach (string filename in createTaskModel.Files.Select(file => file.FileName))
+                foreach (string filename in uploadFilesModel.Files.Select(file => file.FileName).Concat(ticket.Task.FileNames.Select(filename => filename.Name)))
                 {
                     Match match = jobExtensionRegex.Match(filename);
                     if (match.Success)
@@ -78,29 +78,83 @@ namespace Api.Controllers
                 {
                     return BadRequest("No file with .job extension");
                 }
-                
-                await _db.Entry(ticket).Reference(tic => tic.User).LoadAsync();
 
                 string currentDirectory;
                 IEnumerable<string> sendedFiles;
                 
                 using (SftpHelper sftpClient = new SftpHelper(_linuxCredentials, _userDirectoryPath))
                 {
-                    string fullEnglishName = (ticket.User.Lastname + ticket.User.Name).CastCyrillicToEnglish();
-                    currentDirectory = sftpClient.CreateUserFolder(fullEnglishName);
-                    sendedFiles = sftpClient.SendFiles(createTaskModel.Files, currentDirectory);
+                    currentDirectory = sftpClient.CreateUserFolder(ticket.UserId);
+                    sendedFiles = sftpClient.SendFiles(uploadFilesModel.Files, currentDirectory);
+                }
+
+                foreach (string filename in sendedFiles)
+                {
+                    ticket.Task.FileNames.Add(new Filename()
+                    {
+                        Name = filename,
+                        TaskId = ticket.Task.Id
+                    });
+                }
+
+                return Ok("Files added");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> StartTask([FromForm]StartTask startTaskModel)
+        {
+            try
+            {
+                Ticket ticket = await _db.Tickets.Include(ticket => ticket.Task)
+                    .FirstOrDefaultAsync(ticket => ticket.Id == startTaskModel.TicketId);
+
+                if (ticket is null)
+                {
+                    return BadRequest("Ticket doesn't exist");
+                }
+
+                if (!ticket.CanBeUsedRightNow())
+                {
+                    return BadRequest("Ticket can't be used");
                 }
                 
-                //todo start computing
-                
-                ticket.Task = new TicketTask()
+                if (ticket.Task.Status is not TaskStatuses.NotStarted)
                 {
-                    Comment = createTaskModel.Comment ?? String.Empty,
-                    Status = TaskStatuses.NotStarted,
-                    DirectoryPath = currentDirectory,
-                    FileNames = sendedFiles.ToArray()
-                };
+                    return BadRequest("Task has been already started");
+                }
                 
+                await _db.Entry(ticket.Task).Collection(task => task.FileNames).LoadAsync();
+
+                if (ticket.Task.FileNames is null || ticket.Task.FileNames.Count < 1)
+                {
+                    return BadRequest("No input files");
+                }
+
+                Regex jobExtensionRegex = new Regex(@"^.*\.(job)$");
+                bool jobExtensionfound = false;
+                
+                foreach (string filename in ticket.Task.FileNames.Select(filename => filename.Name))
+                {
+                    Match match = jobExtensionRegex.Match(filename);
+                    if (match.Success)
+                    {
+                        jobExtensionfound = true;
+                        break;
+                    }
+                }
+
+                if (!jobExtensionfound)
+                {
+                    return BadRequest("No file with .job extension");
+                }
+
+                //todo start computing
+
                 //todo some actions
 
                 await _db.SaveChangesAsync();

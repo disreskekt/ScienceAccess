@@ -38,7 +38,7 @@ namespace Api.Controllers
 
                 if (emailExists)
                 {
-                    return Conflict("This email already registered");
+                    return BadRequest("This email already registered");
                 }
 
                 if (!ValidateName(register.Name) || !ValidateName(register.Lastname))
@@ -151,7 +151,7 @@ namespace Api.Controllers
             return true;
         }
         
-        private bool ValidateName(string name)
+        private bool ValidateName(string name) //todo any language
         {
             if (name.Length < 2 || name.Length > 24)
             {

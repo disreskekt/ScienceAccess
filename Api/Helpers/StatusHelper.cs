@@ -53,6 +53,11 @@ namespace Api.Helpers
         
         public static TicketUsageStatuses GetUsageStatus(this Ticket ticket)
         {
+            if (ticket.Task is null)
+            {
+                throw new ArgumentNullException(nameof(ticket.Task));
+            }
+            
             if (ticket.IsNotUsed())
             {
                 return TicketUsageStatuses.NotUsed;
@@ -73,18 +78,17 @@ namespace Api.Helpers
         
         public static bool IsNotUsed(this Ticket ticket)
         {
-            return ticket.Task is null || ticket.Task.Status == TaskStatuses.NotStarted;
+            return ticket.Task.Status == TaskStatuses.NotStarted;
         }
 
         public static bool IsInUse(this Ticket ticket)
         {
-            return ticket.Task is not null && ticket.Task.Status == TaskStatuses.InProgress;
+            return ticket.Task.Status == TaskStatuses.InProgress;
         }
 
         public static bool IsUsed(this Ticket ticket)
         {
-            return ticket.Task is not null &&
-                   (ticket.Task.Status == TaskStatuses.Done || ticket.Task.Status == TaskStatuses.Failed);
+            return ticket.Task.Status == TaskStatuses.Done || ticket.Task.Status == TaskStatuses.Failed;
         }
     }
 }

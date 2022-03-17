@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Api.Data;
-using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
@@ -12,6 +11,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TicketTask = Api.Models.Task;
 
 namespace Api.Controllers
 {
@@ -96,13 +96,17 @@ namespace Api.Controllers
                 Ticket[] newTickets = new Ticket[giveTicketsModel.Count];
                 for (int i = 0; i < giveTicketsModel.Count; i++)
                 {
-                    newTickets[i] = new Ticket()
+                    newTickets[i] = new Ticket
                     {
                         UserId = user.Id,
                         StartTime = giveTicketsModel.StartTime,
                         EndTime = giveTicketsModel.EndTime,
                         AvailableDuration = giveTicketsModel.Duration,
                         IsCanceled = false,
+                        Task = new TicketTask
+                        {
+                            Status = TaskStatuses.NotStarted
+                        }
                     };
                 }
                 
@@ -197,10 +201,10 @@ namespace Api.Controllers
 
                 expressionsArray[2] = filterTicketsModel.UsageStatus switch
                 {
-                    TicketUsageStatuses.NotUsed => ticket => ticket.Task == null || ticket.Task.Status == TaskStatuses.NotStarted,
-                    TicketUsageStatuses.InUse => ticket => ticket.Task != null && ticket.Task.Status == TaskStatuses.InProgress,
-                    TicketUsageStatuses.Used => ticket => ticket.Task != null &&
-                                                          (ticket.Task.Status == TaskStatuses.Done || ticket.Task.Status == TaskStatuses.Failed),
+                    TicketUsageStatuses.NotUsed => ticket => ticket.Task.Status == TaskStatuses.NotStarted,
+                    TicketUsageStatuses.InUse => ticket => ticket.Task.Status == TaskStatuses.InProgress,
+                    TicketUsageStatuses.Used => ticket => ticket.Task.Status == TaskStatuses.Done ||
+                                                          ticket.Task.Status == TaskStatuses.Failed,
                     null => null,
                     _ => throw new ArgumentOutOfRangeException(nameof(filterTicketsModel.UsageStatus))
                 };

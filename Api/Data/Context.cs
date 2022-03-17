@@ -11,6 +11,7 @@ namespace Api.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<Task> Tasks { get; set; }
+        public DbSet<Filename> Filenames { get; set; }
 
         public Context(DbContextOptions<Context> options)
             : base(options)

@@ -17,7 +17,7 @@ namespace Api
                     options => options.MapFrom(
                         source => source.Name + " " + source.Lastname));
 
-            CreateMap<User, UserDto>()
+            CreateMap<User, UserDto>() //dont forget to .Include() Tickets and Role
                 .ForMember(
                     dest => dest.FullName,
                     options => options.MapFrom(
@@ -37,7 +37,7 @@ namespace Api
                     options => options.MapFrom(
                         source => source.Role.RoleName));
             
-            CreateMap<Ticket, TicketDto>()
+            CreateMap<Ticket, TicketDto>() //dont forget to .Include() Task
                 .ForMember(
                     dest => dest.ExpirationStatus,
                     options => options.MapFrom(
