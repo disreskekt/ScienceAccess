@@ -6,7 +6,7 @@ namespace Api.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        
+        public bool Inputed { get; set; }
         public Guid TaskId { get; set; }
         public Task Task { get; set; }
     }
