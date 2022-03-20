@@ -41,6 +41,7 @@ namespace Api
             services.AddSwagger("ScienceAccess");
             services.AddAutoMapper(typeof(MappingProfile));
 
+            services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<ITicketService, TicketService>();
             services.AddTransient<ITaskService, TaskService>();
