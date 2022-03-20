@@ -110,7 +110,11 @@ namespace Api.Controllers
             {
                 int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
 
-                User user = await _db.Users.FindAsync(userId);
+                User user = await _db.Users
+                    .Include(user => user.Role)
+                    .Include(user => user.Tickets)
+                    .ThenInclude(ticket => ticket.Task)
+                    .FirstOrDefaultAsync(user => user.Id == userId);
 
                 if (user is null)
                 {
