@@ -119,7 +119,9 @@ namespace Api.Controllers
                 
                 await _db.SaveChangesAsync();
 
-                return Ok("Ticket issued");
+                TicketDto[] ticketDtos = _mapper.Map<TicketDto[]>(newTickets);
+
+                return Ok(ticketDtos);
             }
             catch (Exception e)
             {
