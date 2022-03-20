@@ -85,6 +85,7 @@ namespace Api.Controllers
                 User user = await _db.Users
                     .Include(user => user.Role)
                     .Include(user => user.Tickets)
+                    .ThenInclude(ticket => ticket.Task)
                     .FirstOrDefaultAsync(user => user.Id == id);
 
                 if (user is null)
