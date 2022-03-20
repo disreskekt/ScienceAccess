@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Api.Data;
-using Api.Models;
 using Api.Models.Dtos;
-using Api.Models.Enums;
-using AutoMapper;
+using Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TicketTask = Api.Models.Task;
 
 namespace Api.Controllers
 {
@@ -20,13 +14,11 @@ namespace Api.Controllers
     [Authorize]
     public class TicketController : ControllerBase
     {
-        private readonly Context _db;
-        private readonly IMapper _mapper;
+        private readonly ITicketService _ticketService;
 
-        public TicketController(Context context, IMapper mapper)
+        public TicketController(ITicketService ticketService)
         {
-            _db = context;
-            _mapper = mapper;
+            _ticketService = ticketService;
         }
 
         [HttpGet]
@@ -36,23 +28,7 @@ namespace Api.Controllers
             {
                 int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
 
-                User user = await _db.Users.Include(user => user.Tickets).FirstOrDefaultAsync(user => user.Id == userId);
-
-                if (user is null)
-                {
-                    return BadRequest("User doesn't exist");
-                }
-
-                bool hasTicketRequest = user.TicketRequest;
-
-                if (hasTicketRequest)
-                {
-                    return BadRequest("Ticket has already been requested");
-                }
-
-                user.TicketRequest = true;
-                //todo maybe some notification
-                await _db.SaveChangesAsync();
+                await _ticketService.RequestTicket(userId);
 
                 return Ok("Ticket is requested");
             }
@@ -68,60 +44,9 @@ namespace Api.Controllers
         {
             try
             {
-                if (giveTicketsModel.Count < 1)
-                {
-                    return BadRequest("Can't give less than one ticket");
-                }
-                
-                if (giveTicketsModel.EndTime <= DateTime.Now)
-                {
-                    return BadRequest("You are trying to give an expired ticket");
-                }
-                
-                if (giveTicketsModel.EndTime <= giveTicketsModel.StartTime)
-                {
-                    return BadRequest("You are trying to give a ticket with EndTime less than StartTime");
-                }
+                TicketDto[] givenTickets = await _ticketService.GiveTickets(giveTicketsModel);
 
-                if (giveTicketsModel.Duration <= 0)
-                {
-                    return BadRequest("Task duration should be more than zero");
-                }
-                
-                User user = await _db.Users.Include(user => user.Tickets)
-                    .FirstOrDefaultAsync(user => user.Id == giveTicketsModel.ReceiverId);
-
-                if (user is null)
-                {
-                    return BadRequest("User doesn't exist");
-                }
-
-                user.TicketRequest = false;
-
-                Ticket[] newTickets = new Ticket[giveTicketsModel.Count];
-                for (int i = 0; i < giveTicketsModel.Count; i++)
-                {
-                    newTickets[i] = new Ticket
-                    {
-                        UserId = user.Id,
-                        StartTime = giveTicketsModel.StartTime,
-                        EndTime = giveTicketsModel.EndTime,
-                        AvailableDuration = giveTicketsModel.Duration,
-                        IsCanceled = false,
-                        Task = new TicketTask
-                        {
-                            Status = TaskStatuses.NotStarted
-                        }
-                    };
-                }
-                
-                user.Tickets.AddRange(newTickets);
-                
-                await _db.SaveChangesAsync();
-
-                TicketDto[] ticketDtos = _mapper.Map<TicketDto[]>(newTickets);
-
-                return Ok(ticketDtos);
+                return Ok(givenTickets);
             }
             catch (Exception e)
             {
@@ -135,19 +60,7 @@ namespace Api.Controllers
         {
             try
             {
-                Ticket ticket = await _db.Tickets.FindAsync(changeTicketModel.Id);
-                
-                if (ticket is null)
-                {
-                    return BadRequest("Ticket doesn't exist");
-                }
-
-                ticket.StartTime = changeTicketModel.StartTime ?? ticket.StartTime;
-                ticket.EndTime = changeTicketModel.EndTime ?? ticket.EndTime;
-                ticket.AvailableDuration = changeTicketModel.AvailableDuration ?? ticket.AvailableDuration;
-                ticket.IsCanceled = changeTicketModel.IsCanceled ?? ticket.IsCanceled;
-
-                await _db.SaveChangesAsync();
+                await _ticketService.ChangeTicket(changeTicketModel);
 
                 return Ok("Ticket changed");
             }
@@ -163,16 +76,7 @@ namespace Api.Controllers
         {
             try
             {
-                Ticket ticket = await _db.Tickets
-                    .Include(t => t.Task)
-                    .FirstOrDefaultAsync(t => t.Id == ticketId);
-
-                if (ticket is null)
-                {
-                    return BadRequest("Ticket doesn't exist");
-                }
-
-                TicketDto ticketDto = _mapper.Map<TicketDto>(ticket);
+                TicketDto ticketDto = await _ticketService.GetTicket(ticketId);
 
                 return Ok(ticketDto);
             }
@@ -188,48 +92,8 @@ namespace Api.Controllers
         {
             try
             {
-                Expression<Func<Ticket, bool>>[] expressionsArray = new Expression<Func<Ticket, bool>>[3];
+                List<TicketDto> ticketDtos = await _ticketService.GetAll(filterTicketsModel);
 
-                expressionsArray[0] = filterTicketsModel.Canceled switch
-                {
-                    true => ticket => ticket.IsCanceled == true,
-                    false => ticket => ticket.IsCanceled == false,
-                    null => null
-                };
-                //I can't use methods in expressions :(
-                expressionsArray[1] = filterTicketsModel.ExpirationStatus switch
-                {
-                    TicketExpirationStatuses.Pending => ticket => ticket.StartTime <= DateTime.Now && ticket.EndTime > DateTime.Now,
-                    TicketExpirationStatuses.Available => ticket => ticket.StartTime <= DateTime.Now && ticket.EndTime > DateTime.Now,
-                    TicketExpirationStatuses.Expired => ticket => ticket.EndTime <= DateTime.Now,
-                    null => null,
-                    _ => throw new ArgumentOutOfRangeException(nameof(filterTicketsModel.UsageStatus))
-                };
-
-                expressionsArray[2] = filterTicketsModel.UsageStatus switch
-                {
-                    TicketUsageStatuses.NotUsed => ticket => ticket.Task.Status == TaskStatuses.NotStarted,
-                    TicketUsageStatuses.InUse => ticket => ticket.Task.Status == TaskStatuses.InProgress,
-                    TicketUsageStatuses.Used => ticket => ticket.Task.Status == TaskStatuses.Done ||
-                                                          ticket.Task.Status == TaskStatuses.Failed,
-                    null => null,
-                    _ => throw new ArgumentOutOfRangeException(nameof(filterTicketsModel.UsageStatus))
-                };
-
-                IQueryable<Ticket> dbTickets = _db.Tickets.Include(ticket => ticket.Task).AsQueryable();
-
-                foreach (Expression<Func<Ticket, bool>> expression in expressionsArray)
-                {
-                    if (expression is null)
-                    {
-                        continue;
-                    }
-
-                    dbTickets = dbTickets.Where(expression);
-                }
-
-                List<TicketDto> ticketDtos = _mapper.Map<List<TicketDto>>(await dbTickets.ToListAsync());
-                
                 return Ok(ticketDtos);
             }
             catch (Exception e)

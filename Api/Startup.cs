@@ -42,6 +42,7 @@ namespace Api
             services.AddAutoMapper(typeof(MappingProfile));
 
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<ITicketService, TicketService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
