@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Threading.Tasks;
 using Api.Exceptions;
 using Api.Options;
 using Microsoft.AspNetCore.Http;
 using Renci.SshNet;
 
-namespace Api.Helpers
-{
-    public class SftpHelper : IDisposable
+namespace Api.Services;
+
+public class SftpService : IDisposable
     {
         private readonly SftpClient _client;
         private readonly string _userFolderPath;
 
-        public SftpHelper(LinuxCredentials linuxCredentials, string userFolderPath)
+        public SftpService(LinuxCredentials linuxCredentials, string userFolderPath)
         {
             _userFolderPath = userFolderPath;
 
@@ -168,4 +167,3 @@ namespace Api.Helpers
             _client.Dispose();
         }
     }
-}

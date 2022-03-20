@@ -57,7 +57,7 @@ public class FileService : IFileService
 
         IEnumerable<string> sendedFiles;
 
-        using (SftpHelper sftpClient = new SftpHelper(_linuxCredentials, _userDirectoryPath))
+        using (SftpService sftpClient = new SftpService(_linuxCredentials, _userDirectoryPath))
         {
             if (string.IsNullOrEmpty(ticket.Task.DirectoryPath))
             {
@@ -104,7 +104,7 @@ public class FileService : IFileService
             throw new Exception("Specify files which you want to download");
         }
 
-        using (SftpHelper sftpClient = new SftpHelper(_linuxCredentials, _userDirectoryPath))
+        using (SftpService sftpClient = new SftpService(_linuxCredentials, _userDirectoryPath))
         {
             if (downloadFilesModel.Filenames.Length == 1)
             {
