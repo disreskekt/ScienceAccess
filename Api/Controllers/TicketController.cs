@@ -77,6 +77,11 @@ namespace Api.Controllers
                 {
                     return BadRequest("You are trying to give an expired ticket");
                 }
+                
+                if (giveTicketsModel.EndTime <= giveTicketsModel.StartTime)
+                {
+                    return BadRequest("You are trying to give a ticket with EndTime less than StartTime");
+                }
 
                 if (giveTicketsModel.Duration <= 0)
                 {
