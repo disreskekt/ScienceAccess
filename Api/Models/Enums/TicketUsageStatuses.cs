@@ -2,8 +2,8 @@
 {
     public enum TicketUsageStatuses
     {
-        NotUsed = 4,
-        InUse = 5,
-        Used = 6,
+        NotUsed = 1,
+        InUse = 2,
+        Used = 3,
     }
 }
