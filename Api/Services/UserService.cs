@@ -18,7 +18,7 @@ public class UserService : IUserService
     private readonly Context _db;
     private readonly IMapper _mapper;
     
-    private UserService(Context db, IMapper mapper)
+    public UserService(Context db, IMapper mapper)
     {
         _db = db;
         _mapper = mapper;
