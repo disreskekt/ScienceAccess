@@ -1,6 +1,8 @@
 using Api.Data;
 using Api.Extensions;
 using Api.Options;
+using Api.Services;
+using Api.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +40,8 @@ namespace Api
             services.AddJwtAuthentication(authOptions);
             services.AddSwagger("ScienceAccess");
             services.AddAutoMapper(typeof(MappingProfile));
+
+            services.AddTransient<IUserService, UserService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
