@@ -3,8 +3,9 @@
     public enum TaskStatuses
     {
         NotStarted = 1,
-        InProgress = 2,
-        Done = 3,
-        Failed = 4,
+        Pending = 2,
+        InProgress = 3,
+        Done = 4,
+        Failed = 5,
     }
 }

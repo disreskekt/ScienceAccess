@@ -83,7 +83,7 @@ namespace Api.Helpers
 
         public static bool IsInUse(this Ticket ticket)
         {
-            return ticket.Task.Status == TaskStatuses.InProgress;
+            return ticket.Task.Status == TaskStatuses.InProgress || ticket.Task.Status == TaskStatuses.Pending;
         }
 
         public static bool IsUsed(this Ticket ticket)
