@@ -11,7 +11,7 @@ namespace Api.Helpers
         {
             string salt = email.Split('@').First() + pass;
             pass += salt;
-            byte[] hash = ComputeHash(pass, new SHA256CryptoServiceProvider());
+            byte[] hash = ComputeHash(pass, SHA256.Create());
             return Convert.ToBase64String(hash);
         }
         
