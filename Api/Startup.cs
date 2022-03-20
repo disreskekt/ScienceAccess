@@ -45,6 +45,7 @@ namespace Api
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<ITicketService, TicketService>();
             services.AddTransient<ITaskService, TaskService>();
+            services.AddTransient<IFileService, FileService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
