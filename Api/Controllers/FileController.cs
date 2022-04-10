@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Models.Dtos;
-using Api.Services.Interfaces;
+using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,9 +13,9 @@ namespace Api.Controllers
     [Authorize]
     public class FileController : ControllerBase
     {
-        private readonly IFileService _fileService;
+        private readonly FileService _fileService;
 
-        public FileController(IFileService fileService)
+        public FileController(FileService fileService)
         {
             _fileService = fileService;
         }

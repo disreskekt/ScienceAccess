@@ -8,7 +8,6 @@ using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
 using Api.Options;
-using Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Task = System.Threading.Tasks.Task;
@@ -16,7 +15,7 @@ using TicketTask = Api.Models.Task;
 
 namespace Api.Services;
 
-public class FileService : IFileService
+public class FileService
 {
     private readonly Context _db;
     private readonly string _userDirectoryPath;

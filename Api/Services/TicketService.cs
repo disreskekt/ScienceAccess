@@ -7,7 +7,6 @@ using Api.Data;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
-using Api.Services.Interfaces;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Task = System.Threading.Tasks.Task;
@@ -15,7 +14,7 @@ using TicketTask = Api.Models.Task;
 
 namespace Api.Services;
 
-public class TicketService : ITicketService
+public class TicketService
 {
     private readonly Context _db;
     private readonly IMapper _mapper;

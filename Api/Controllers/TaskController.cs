@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Models.Dtos;
-using Api.Services.Interfaces;
+using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,9 +13,9 @@ namespace Api.Controllers
     [Authorize]
     public class TaskController : ControllerBase
     {
-        private readonly ITaskService _taskService;
+        private readonly TaskService _taskService;
 
-        public TaskController(ITaskService taskService)
+        public TaskController(TaskService taskService)
         {
             _taskService = taskService;
         }

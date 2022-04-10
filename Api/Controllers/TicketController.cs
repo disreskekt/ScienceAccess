@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Models.Dtos;
-using Api.Services.Interfaces;
+using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,9 +14,9 @@ namespace Api.Controllers
     [Authorize]
     public class TicketController : ControllerBase
     {
-        private readonly ITicketService _ticketService;
+        private readonly TicketService _ticketService;
 
-        public TicketController(ITicketService ticketService)
+        public TicketController(TicketService ticketService)
         {
             _ticketService = ticketService;
         }

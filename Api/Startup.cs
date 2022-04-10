@@ -2,14 +2,12 @@ using Api.Data;
 using Api.Extensions;
 using Api.Options;
 using Api.Services;
-using Api.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 
 namespace Api
 {
@@ -41,11 +39,11 @@ namespace Api
             services.AddSwagger("ScienceAccess");
             services.AddAutoMapper(typeof(MappingProfile));
 
-            services.AddTransient<IAuthService, AuthService>();
-            services.AddTransient<IUserService, UserService>();
-            services.AddTransient<ITicketService, TicketService>();
-            services.AddTransient<ITaskService, TaskService>();
-            services.AddTransient<IFileService, FileService>();
+            services.AddTransient<AuthService>();
+            services.AddTransient<UserService>();
+            services.AddTransient<TicketService>();
+            services.AddTransient<TaskService>();
+            services.AddTransient<FileService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

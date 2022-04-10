@@ -6,14 +6,13 @@ using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
-using Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Task = System.Threading.Tasks.Task;
 using TicketTask = Api.Models.Task;
 
 namespace Api.Services;
 
-public class TaskService : ITaskService
+public class TaskService
 {
     private readonly Context _db;
 

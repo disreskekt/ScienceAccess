@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Api.Models.Dtos;
-using Api.Services.Interfaces;
+using Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
@@ -10,9 +10,9 @@ namespace Api.Controllers
     [Route("[controller]/[action]")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly AuthService _authService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(AuthService authService)
         {
             _authService = authService;
         }

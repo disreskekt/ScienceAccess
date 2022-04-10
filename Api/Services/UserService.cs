@@ -5,7 +5,6 @@ using Api.Data;
 using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
-using Api.Services.Interfaces;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Task = System.Threading.Tasks.Task;
@@ -13,7 +12,7 @@ using TicketTask = Api.Models.Task;
 
 namespace Api.Services;
 
-public class UserService : IUserService
+public class UserService
 {
     private readonly Context _db;
     private readonly IMapper _mapper;

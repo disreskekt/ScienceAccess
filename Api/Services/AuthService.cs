@@ -9,7 +9,6 @@ using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Options;
-using Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +17,7 @@ using TicketTask = Api.Models.Task;
 
 namespace Api.Services;
 
-public class AuthService : IAuthService
+public class AuthService
 {
     private readonly Context _db;
     private readonly AuthOptions _authOptions;
