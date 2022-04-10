@@ -70,6 +70,38 @@ namespace Api.Controllers
             }
         }
         
+        [HttpPut]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CancelTicket([FromQuery] Guid id)
+        {
+            try
+            {
+                await _ticketService.CancelTicket(id);
+
+                return Ok("Ticket canceled");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
+        [HttpPut]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResumeTicket([FromQuery] Guid id)
+        {
+            try
+            {
+                await _ticketService.ResumeTicket(id);
+
+                return Ok("Ticket resumed");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetTicket([FromQuery] Guid ticketId)

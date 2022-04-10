@@ -113,10 +113,37 @@ public class TicketService
             throw new Exception("Ticket doesn't exist");
         }
 
-        ticket.StartTime = changeTicketModel.StartTime ?? ticket.StartTime;
-        ticket.EndTime = changeTicketModel.EndTime ?? ticket.EndTime;
-        ticket.AvailableDuration = changeTicketModel.AvailableDuration ?? ticket.AvailableDuration;
-        ticket.IsCanceled = changeTicketModel.IsCanceled ?? ticket.IsCanceled;
+        ticket.StartTime = changeTicketModel.StartTime;
+        ticket.EndTime = changeTicketModel.EndTime;
+        ticket.AvailableDuration = changeTicketModel.AvailableDuration;
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task CancelTicket(Guid id)
+    {
+        Ticket ticket = await _db.Tickets.FindAsync(id);
+
+        if (ticket is null)
+        {
+            throw new Exception("Ticket doesn't exist");
+        }
+
+        ticket.IsCanceled = true;
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task ResumeTicket(Guid id)
+    {
+        Ticket ticket = await _db.Tickets.FindAsync(id);
+
+        if (ticket is null)
+        {
+            throw new Exception("Ticket doesn't exist");
+        }
+
+        ticket.IsCanceled = false;
 
         await _db.SaveChangesAsync();
     }
