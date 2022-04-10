@@ -147,7 +147,7 @@ public class TicketService
 
         await _db.SaveChangesAsync();
     }
-
+    
     public async Task<TicketDto> GetTicket(Guid ticketId)
     {
         Ticket ticket = await _db.Tickets
@@ -157,6 +157,22 @@ public class TicketService
         if (ticket is null)
         {
             throw new Exception("Ticket doesn't exist");
+        }
+
+        TicketDto ticketDto = _mapper.Map<TicketDto>(ticket);
+
+        return ticketDto;
+    }
+    
+    public async Task<TicketDto> GetMyTicket(Guid ticketId, int userId)
+    {
+        Ticket ticket = await _db.Tickets
+            .Include(t => t.Task)
+            .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+        if (ticket is null || ticket.UserId != userId)
+        {
+            throw new Exception("You don't have such ticket");
         }
 
         TicketDto ticketDto = _mapper.Map<TicketDto>(ticket);

@@ -118,6 +118,24 @@ namespace Api.Controllers
             }
         }
         
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetMyTicket([FromQuery] Guid ticketId)
+        {
+            try
+            {
+                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+                
+                TicketDto ticketDto = await _ticketService.GetMyTicket(ticketId, userId);
+
+                return Ok(ticketDto);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll([FromBody] FilterTickets filterTicketsModel)
