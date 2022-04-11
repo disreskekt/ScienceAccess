@@ -44,7 +44,10 @@ public class UserService
 
     public async Task<List<AllUsersDto>> GetAll()
     {
-        List<User> usersList = await _db.Users.ToListAsync();
+        List<User> usersList = await _db.Users
+            .Include(user => user.Tickets)
+            .ThenInclude(ticket => ticket.Task)
+            .ToListAsync();
 
         List<AllUsersDto> userDtosList = _mapper.Map<List<AllUsersDto>>(usersList);
 
