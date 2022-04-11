@@ -79,20 +79,6 @@ namespace Api.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.UpdateData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 1,
-                columns: new[] { "Email", "Name", "SurName" },
-                values: new object[] { "base@base.base", "Base", "Admin" });
-
-            migrationBuilder.UpdateData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 2,
-                columns: new[] { "Email", "Name", "SurName" },
-                values: new object[] { "init@init.init", "Init", "User" });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_UserId",
                 table: "Tickets",
@@ -112,20 +98,6 @@ namespace Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Tickets");
-
-            migrationBuilder.UpdateData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 1,
-                columns: new[] { "Email", "Name", "SurName" },
-                values: new object[] { "idc@idc.idc", "Maks", "SureMaks" });
-
-            migrationBuilder.UpdateData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 2,
-                columns: new[] { "Email", "Name", "SurName" },
-                values: new object[] { "idk@idk.idk", "NeMaks", "SureNeMaks" });
         }
     }
 }

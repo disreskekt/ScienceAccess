@@ -123,28 +123,6 @@ namespace Api.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Email = "base@base.base",
-                            Lastname = "Admin",
-                            Name = "Base",
-                            Password = "qwerty",
-                            RoleId = 1,
-                            TicketRequest = false
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Email = "init@init.init",
-                            Lastname = "User",
-                            Name = "Init",
-                            Password = "qwerty",
-                            RoleId = 2,
-                            TicketRequest = false
-                        });
                 });
 
             modelBuilder.Entity("Api.Models.Task", b =>

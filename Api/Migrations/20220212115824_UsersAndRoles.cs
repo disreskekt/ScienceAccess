@@ -52,15 +52,6 @@ namespace Api.Migrations
                     { 2, "User" }
                 });
 
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "Id", "Email", "Name", "Password", "RoleId", "SurName" },
-                values: new object[,]
-                {
-                    { 1, "base@base.base", "Base", "qwerty", 1, "Admin" },
-                    { 2, "init@init.init", "Init", "qwerty", 2, "User" }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleId",
                 table: "Users",

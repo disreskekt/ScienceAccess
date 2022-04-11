@@ -74,26 +74,6 @@ namespace Api.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Email = "idc@idc.idc",
-                            Name = "Maks",
-                            Password = "qwerty",
-                            RoleId = 1,
-                            SurName = "SureMaks"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Email = "idk@idk.idk",
-                            Name = "NeMaks",
-                            Password = "qwerty",
-                            RoleId = 2,
-                            SurName = "SureNeMaks"
-                        });
                 });
 
             modelBuilder.Entity("Api.Models.User", b =>
