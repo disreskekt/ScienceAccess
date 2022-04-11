@@ -119,7 +119,6 @@ namespace Api.Controllers
         }
         
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetMyTicket([FromQuery] Guid ticketId)
         {
             try
