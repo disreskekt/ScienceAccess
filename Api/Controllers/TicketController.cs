@@ -54,7 +54,7 @@ namespace Api.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPatch]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeTicket([FromBody] ChangeTicket changeTicketModel)
         {
@@ -70,7 +70,7 @@ namespace Api.Controllers
             }
         }
         
-        [HttpPut]
+        [HttpPatch]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CancelTicket([FromQuery] Guid id)
         {
@@ -86,7 +86,7 @@ namespace Api.Controllers
             }
         }
         
-        [HttpPut]
+        [HttpPatch]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ResumeTicket([FromQuery] Guid id)
         {
