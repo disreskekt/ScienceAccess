@@ -21,7 +21,7 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> StartTask([FromForm]StartTask startTaskModel)
+        public async Task<IActionResult> StartTask([FromBody]StartTask startTaskModel)
         {
             try
             {
