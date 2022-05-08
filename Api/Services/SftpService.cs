@@ -26,14 +26,14 @@ public class SftpService : IDisposable
             _client.Connect();
         }
 
-        public string CreateUserFolder(int userId)
+        public string CreateUserFolder(string email)
         {
             if (!_client.Exists(_userFolderPath))
             {
                 this.RestoreFolder(_userFolderPath);
             }
 
-            string userDirectory = $"{_userFolderPath}/{userId}-{DateTime.Now:yyyyMMddTHHmmss}";
+            string userDirectory = $"{_userFolderPath}/{email}-{DateTime.Now:yyyyMMddTHHmmss}";
 
             _client.CreateDirectory(userDirectory);
 

@@ -30,7 +30,9 @@ public class FileService
 
     public async Task UploadFiles(UploadFilesDto uploadFilesModel)
     {
-        Ticket ticket = await _db.Tickets.Include(ticket => ticket.Task)
+        Ticket ticket = await _db.Tickets
+            .Include(ticket => ticket.User)
+            .Include(ticket => ticket.Task)
             .ThenInclude(task => task.FileNames)
             .FirstOrDefaultAsync(ticket => ticket.Id == uploadFilesModel.TaskId);
 
@@ -60,7 +62,7 @@ public class FileService
         {
             if (string.IsNullOrEmpty(ticket.Task.DirectoryPath))
             {
-                ticket.Task.DirectoryPath = sftpClient.CreateUserFolder(ticket.UserId);
+                ticket.Task.DirectoryPath = sftpClient.CreateUserFolder(ticket.User.Email);
             }
             else
             {
