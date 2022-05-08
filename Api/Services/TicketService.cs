@@ -93,7 +93,9 @@ public class TicketService
             throw new Exception("Task duration should be more than zero");
         }
 
-        User user = await _db.Users.Include(user => user.Tickets)
+        User user = await _db.Users
+            .Include(user => user.Tickets)
+            .Include(user => user.TicketRequest)
             .FirstOrDefaultAsync(user => user.Id == giveTicketsModel.ReceiverId);
 
         if (user is null)
