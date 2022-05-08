@@ -55,7 +55,7 @@ public class AuthService
             Password = hashString,
             Name = register.Name,
             Lastname = register.Lastname,
-            TicketRequest = false,
+            TicketRequest = new TicketRequest() {IsRequested = false},
             RoleId = 2
         });
 

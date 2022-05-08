@@ -25,27 +25,52 @@ public class TicketService
         _mapper = mapper;
     }
 
-    public async Task RequestTicket(int userId)
+    public async Task RequestTicket(int userId, string comment, int? duration)
     {
-        User user = await _db.Users.Include(user => user.Tickets).FirstOrDefaultAsync(user => user.Id == userId);
+        User user = await _db.Users
+            .Include(user => user.TicketRequest)
+            .FirstOrDefaultAsync(user => user.Id == userId);
 
         if (user is null)
         {
             throw new Exception("User doesn't exist");
         }
-
-        bool hasTicketRequest = user.TicketRequest;
-
-        if (hasTicketRequest)
+        
+        if (user.TicketRequest.IsRequested)
         {
             throw new Exception("Ticket has already been requested");
         }
 
-        user.TicketRequest = true;
+        user.TicketRequest.IsRequested = true;
+        user.TicketRequest.Comment = comment;
+        user.TicketRequest.Duration = duration;
+        
         //todo maybe some notification
+        
         await _db.SaveChangesAsync();
     }
 
+    public async Task CancelRequest(int userId)
+    {
+        User user = await _db.Users
+            .Include(user => user.TicketRequest)
+            .FirstOrDefaultAsync(user => user.Id == userId);
+
+        if (user is null)
+        {
+            throw new Exception("User doesn't exist");
+        }
+        
+        if (!user.TicketRequest.IsRequested)
+        {
+            throw new Exception("Ticket has not requested");
+        }
+        
+        user.TicketRequest.IsRequested = false;
+        
+        await _db.SaveChangesAsync();
+    }
+    
     public async Task<TicketDto[]> GiveTickets(GiveTickets giveTicketsModel)
     {
         if (giveTicketsModel.Count < 1)
@@ -76,7 +101,7 @@ public class TicketService
             throw new Exception("User doesn't exist");
         }
 
-        user.TicketRequest = false;
+        user.TicketRequest.IsRequested = false;
 
         Ticket[] newTickets = new Ticket[giveTicketsModel.Count];
         for (int i = 0; i < giveTicketsModel.Count; i++)

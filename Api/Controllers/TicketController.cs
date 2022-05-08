@@ -21,14 +21,14 @@ namespace Api.Controllers
             _ticketService = ticketService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> RequestTicket()
+        [HttpPost]
+        public async Task<IActionResult> RequestTicket([FromBody] TicketRequestDto ticketRequestDto)
         {
             try
             {
                 int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
 
-                await _ticketService.RequestTicket(userId);
+                await _ticketService.RequestTicket(userId, ticketRequestDto.Comment, ticketRequestDto.Duration);
 
                 return Ok("Ticket is requested");
             }
@@ -38,6 +38,23 @@ namespace Api.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> CancelRequest()
+        {
+            try
+            {
+                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+
+                await _ticketService.CancelRequest(userId);
+
+                return Ok("Ticket request cancelled");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GiveTickets([FromBody] GiveTickets giveTicketsModel)
