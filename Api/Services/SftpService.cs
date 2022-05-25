@@ -83,36 +83,46 @@ public class SftpService : IDisposable
 
         public byte[] GetFiles(string path, string[] filenames)
         {
-            string tempDateTime = DateTime.Now.ToString("yyyyMMddTHHmmssfffffff");
-
-            using (ZipArchive zip = ZipFile.Open($"temp_{tempDateTime}.zip", ZipArchiveMode.Create))
+            string tempDateTime = "";
+            
+            try
             {
-                foreach (string filename in filenames)
+                tempDateTime = DateTime.Now.ToString("yyyyMMddTHHmmssfffffff");
+
+                using (ZipArchive zip = ZipFile.Open($"temp_{tempDateTime}.zip", ZipArchiveMode.Create))
                 {
-                    if (!_client.Exists((path + "/" + filename)))
+                    foreach (string filename in filenames)
                     {
-                        throw new WrongFilenameException($"{path + "/" + filename} doesn't exist");
+                        if (!_client.Exists((path + "/" + filename)))
+                        {
+                            throw new WrongFilenameException($"{path + "/" + filename} doesn't exist");
+                        }
+
+                        AddFileToZip(zip, path, filename, tempDateTime);
                     }
-                    
-                    AddFileToZip(zip, path, filename, tempDateTime);
                 }
-            }
 
-            byte[] array;
+                byte[] array;
 
-            using (FileStream fileStream = new FileStream($"temp_{tempDateTime}.zip", FileMode.Open))
-            {
-                using (MemoryStream memoryStream = new MemoryStream())
+                using (FileStream fileStream = new FileStream($"temp_{tempDateTime}.zip", FileMode.Open))
                 {
-                    fileStream.CopyTo(memoryStream);
+                    using (MemoryStream memoryStream = new MemoryStream())
+                    {
+                        fileStream.CopyTo(memoryStream);
 
-                    array = memoryStream.ToArray();
+                        array = memoryStream.ToArray();
+                    }
+                }
+
+                return array;
+            }
+            finally
+            {
+                if (File.Exists($"temp_{tempDateTime}.zip"))
+                {
+                    File.Delete($"temp_{tempDateTime}.zip");
                 }
             }
-
-            File.Delete($"temp_{tempDateTime}.zip");
-
-            return array;
         }
 
         public void DeleteFiles(string path, string[] filenames)
@@ -141,23 +151,26 @@ public class SftpService : IDisposable
         
         private void AddFileToZip(ZipArchive zip, string path, string filename, string tempDateTime)
         {
-            string fullPath = path + "/" + filename;
-
-            if (!_client.Exists(fullPath))
+            try
             {
-                throw new WrongFilenameException($"{fullPath} doesn't exist");
-            }
+                string fullPath = path + "/" + filename;
 
-            using (FileStream fileStream =
-                   new FileStream($"temp_{tempDateTime}_{filename}",
-                       FileMode.Create))
+                using (FileStream fileStream =
+                       new FileStream($"temp_{tempDateTime}_{filename}",
+                           FileMode.Create))
+                {
+                    _client.DownloadFile(fullPath, fileStream);
+                }
+
+                zip.CreateEntryFromFile($"temp_{tempDateTime}_{filename}", $"{filename}", CompressionLevel.Optimal);
+            }
+            finally
             {
-                _client.DownloadFile(fullPath, fileStream);
+                if (File.Exists($"temp_{tempDateTime}_{filename}"))
+                {
+                    File.Delete($"temp_{tempDateTime}_{filename}");
+                }
             }
-
-            zip.CreateEntryFromFile($"temp_{tempDateTime}_{filename}", $"{filename}", CompressionLevel.Optimal);
-
-            File.Delete($"temp_{tempDateTime}_{filename}");
         }
 
         private void RestoreFolder(string pathToRestore)
