@@ -70,7 +70,7 @@ public class SftpService : IDisposable
 
             if (!_client.Exists(fullPath))
             {
-                throw new WrongFilenameException($"{fullPath} doesn't exist");
+                throw new WrongFilenameException($"{filename} doesn't exist");
             }
 
             using (MemoryStream memoryStream = new MemoryStream())
@@ -115,6 +115,18 @@ public class SftpService : IDisposable
             return array;
         }
 
+        public void DeleteFile(string path, string filename)
+        {
+            string fullPath = path + "/" + filename;
+
+            if (!_client.Exists(fullPath))
+            {
+                throw new WrongFilenameException($"{filename} doesn't exist");
+            }
+            
+            _client.DeleteFile(fullPath);
+        }
+        
         private void AddFileToZip(ZipArchive zip, string path, string filename, string tempDateTime)
         {
             string fullPath = path + "/" + filename;

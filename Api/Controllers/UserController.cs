@@ -26,7 +26,7 @@ namespace Api.Controllers
         {
             try
             {
-                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+                int userId = GetCurrentUserId();
 
                 await _userService.ChangePassword(changePasswordModel, userId);
 
@@ -75,7 +75,7 @@ namespace Api.Controllers
         {
             try
             {
-                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+                int userId = GetCurrentUserId();
 
                 GetMyselfDto myselfDto = await _userService.GetMyself(userId);
 
@@ -85,6 +85,13 @@ namespace Api.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+        
+        private int GetCurrentUserId()
+        {
+            int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+
+            return userId;
         }
     }
 }

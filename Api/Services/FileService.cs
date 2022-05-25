@@ -148,4 +148,36 @@ public class FileService
             }
         }
     }
+
+    public async Task DeleteFile(int userId, Guid taskId, string filename)
+    {
+        TicketTask task = await _db.Tasks.Include(task => task.FileNames)
+                                         .Include(task => task.Ticket)
+                                         .FirstOrDefaultAsync(task => task.Id == taskId);
+        
+        if (task is null)
+        {
+            throw new Exception("Task doesn't exist");
+        }
+        
+        if (task.Ticket.UserId != userId)
+        {
+            throw new Exception("This is not your task");
+        }
+
+        if (string.IsNullOrWhiteSpace(filename))
+        {
+            throw new Exception("Filename is empty");
+        }
+
+        if (string.IsNullOrWhiteSpace(task.DirectoryPath))
+        {
+            throw new Exception("Nothing to delete");
+        }
+        
+        using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
+        {
+            sftpClient.DeleteFile(task.DirectoryPath, filename);
+        }
+    }
 }

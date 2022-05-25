@@ -26,7 +26,7 @@ namespace Api.Controllers
         {
             try
             {
-                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+                int userId = GetCurrentUserId();
 
                 await _ticketService.RequestTicket(userId, ticketRequestDto.Comment, ticketRequestDto.Duration);
 
@@ -43,7 +43,7 @@ namespace Api.Controllers
         {
             try
             {
-                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+                int userId = GetCurrentUserId();
 
                 await _ticketService.CancelRequest(userId);
 
@@ -140,7 +140,7 @@ namespace Api.Controllers
         {
             try
             {
-                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+                int userId = GetCurrentUserId();
                 
                 TicketDto ticketDto = await _ticketService.GetMyTicket(ticketId, userId);
 
@@ -166,6 +166,13 @@ namespace Api.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+        
+        private int GetCurrentUserId()
+        {
+            int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+
+            return userId;
         }
     }
 }

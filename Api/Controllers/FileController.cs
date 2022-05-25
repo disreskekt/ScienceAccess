@@ -40,7 +40,7 @@ namespace Api.Controllers
         {
             try
             {
-                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+                int userId = GetCurrentUserId();
 
                 return Ok(await _fileService.GetFiles(userId, taskId, isInputed));
             }
@@ -55,7 +55,7 @@ namespace Api.Controllers
         {
             try
             {
-                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+                int userId = GetCurrentUserId();
 
                 byte[] file = await _fileService.DownloadFiles(downloadFilesModel, userId);
 
@@ -74,6 +74,28 @@ namespace Api.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+        
+        [HttpDelete]
+        public async Task<IActionResult> DeleteFile([FromQuery] Guid taskId, [FromQuery] string filename)
+        {
+            try
+            {
+                int userId = GetCurrentUserId();
+
+                return Ok(_fileService.DeleteFile(userId, taskId, filename));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        private int GetCurrentUserId()
+        {
+            int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+
+            return userId;
         }
     }
 }
