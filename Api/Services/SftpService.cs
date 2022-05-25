@@ -172,6 +172,11 @@ public class SftpService : IDisposable
 
             foreach (string folder in folders)
             {
+                if (string.IsNullOrWhiteSpace(folder))
+                {
+                    continue;
+                }
+                
                 growingPath += folder;
 
                 if (!_client.Exists(growingPath))
