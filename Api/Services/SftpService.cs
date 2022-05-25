@@ -12,11 +12,11 @@ namespace Api.Services;
 public class SftpService : IDisposable
     {
         private readonly SftpClient _client;
-        private readonly string _userFolderPath;
+        private readonly string _baseFolderPath;
 
-        public SftpService(LinuxCredentials linuxCredentials, string userFolderPath)
+        public SftpService(LinuxCredentials linuxCredentials, string baseFolderPath)
         {
-            _userFolderPath = userFolderPath;
+            _baseFolderPath = baseFolderPath;
 
             _client = new SftpClient(linuxCredentials.Host,
                 linuxCredentials.Port,
@@ -28,12 +28,12 @@ public class SftpService : IDisposable
 
         public string CreateUserFolder(string email)
         {
-            if (!_client.Exists(_userFolderPath))
+            if (!_client.Exists(_baseFolderPath))
             {
-                this.RestoreFolder(_userFolderPath);
+                this.RestoreFolder(_baseFolderPath);
             }
 
-            string userDirectory = $"{_userFolderPath}/{email}-{DateTime.Now:yyyyMMddTHHmmss}";
+            string userDirectory = $"{_baseFolderPath}/{email}-{DateTime.Now:yyyyMMddTHHmmss}";
 
             _client.CreateDirectory(userDirectory);
 

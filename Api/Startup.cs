@@ -32,7 +32,7 @@ namespace Api
             services.AddCors();
 
             services.AddOptions<LinuxCredentials>(this.Configuration, "Linux");
-            services.AddOptions<UserFolder>(this.Configuration, "UserFolder");
+            services.AddOptions<BaseFolder>(this.Configuration, "UserFolder");
             
             AuthOptions authOptions = services.AddOptions<AuthOptions>(this.Configuration, "Auth");
             services.AddJwtAuthentication(authOptions);

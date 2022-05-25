@@ -1,6 +1,6 @@
 ﻿namespace Api.Options
 {
-    public class UserFolder
+    public class BaseFolder
     {
         public string Path { get; set; }
     }

@@ -18,13 +18,13 @@ namespace Api.Services;
 public class FileService
 {
     private readonly Context _db;
-    private readonly string _userDirectoryPath;
+    private readonly string _baseFolderPath;
     private readonly LinuxCredentials _linuxCredentials;
 
-    public FileService(Context context, IOptions<LinuxCredentials> linuxCredentials, IOptions<UserFolder> userFolder)
+    public FileService(Context context, IOptions<LinuxCredentials> linuxCredentials, IOptions<BaseFolder> baseFolder)
     {
         _db = context;
-        _userDirectoryPath = userFolder.Value.Path;
+        _baseFolderPath = baseFolder.Value.Path;
         _linuxCredentials = linuxCredentials.Value;
     }
 
@@ -58,7 +58,7 @@ public class FileService
 
         IEnumerable<string> sendedFiles;
 
-        using (SftpService sftpClient = new SftpService(_linuxCredentials, _userDirectoryPath))
+        using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
             if (string.IsNullOrEmpty(ticket.Task.DirectoryPath))
             {
@@ -134,7 +134,7 @@ public class FileService
             throw new Exception("Specify files which you want to download");
         }
 
-        using (SftpService sftpClient = new SftpService(_linuxCredentials, _userDirectoryPath))
+        using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
             if (downloadFilesModel.Filenames.Length == 1)
             {
