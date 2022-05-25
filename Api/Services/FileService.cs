@@ -149,11 +149,11 @@ public class FileService
         }
     }
 
-    public async Task DeleteFiles(int userId, Guid taskId, string[] filenames)
+    public async Task DeleteFiles(DeleteFilesDto deleteFilesModel, int userId)
     {
         TicketTask task = await _db.Tasks.Include(task => task.FileNames)
                                          .Include(task => task.Ticket)
-                                         .FirstOrDefaultAsync(task => task.Id == taskId);
+                                         .FirstOrDefaultAsync(task => task.Id == deleteFilesModel.TaskId);
         
         if (task is null)
         {
@@ -165,7 +165,7 @@ public class FileService
             throw new Exception("This is not your task");
         }
 
-        if (filenames is null || filenames.Length < 1)
+        if (deleteFilesModel.Filenames is null || deleteFilesModel.Filenames.Length < 1)
         {
             throw new Exception("Specify files which you want to delete");
         }
@@ -177,7 +177,7 @@ public class FileService
         
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
-            sftpClient.DeleteFiles(task.DirectoryPath, filenames);
+            sftpClient.DeleteFiles(task.DirectoryPath, deleteFilesModel.Filenames);
         }
     }
 }

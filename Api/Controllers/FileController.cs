@@ -77,14 +77,14 @@ namespace Api.Controllers
             }
         }
         
-        [HttpDelete]
-        public async Task<IActionResult> DeleteFiles([FromQuery] Guid taskId, [FromQuery] string[] filenames)
+        [HttpPost]
+        public async Task<IActionResult> DeleteFiles([FromBody] DeleteFilesDto deleteFilesModel)
         {
             try
             {
                 int userId = GetCurrentUserId();
 
-                await _fileService.DeleteFiles(userId, taskId, filenames);
+                await _fileService.DeleteFiles(deleteFilesModel, userId);
                 
                 return Ok();
             }
