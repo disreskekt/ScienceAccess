@@ -161,7 +161,7 @@ public class SftpService : IDisposable
 
         private void RestoreFolder(string pathToRestore)
         {
-            if (!pathToRestore.Contains('/'))
+            if (!pathToRestore.StartsWith('/'))
             {
                 throw new ArgumentException("The path must match the format /dir/dir");
             }
