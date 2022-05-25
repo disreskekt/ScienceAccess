@@ -149,7 +149,7 @@ public class FileService
         }
     }
 
-    public async Task DeleteFile(int userId, Guid taskId, string filename)
+    public async Task DeleteFiles(int userId, Guid taskId, string[] filenames)
     {
         TicketTask task = await _db.Tasks.Include(task => task.FileNames)
                                          .Include(task => task.Ticket)
@@ -165,9 +165,9 @@ public class FileService
             throw new Exception("This is not your task");
         }
 
-        if (string.IsNullOrWhiteSpace(filename))
+        if (filenames is null || filenames.Length < 1)
         {
-            throw new Exception("Filename is empty");
+            throw new Exception("Specify files which you want to delete");
         }
 
         if (string.IsNullOrWhiteSpace(task.DirectoryPath))
@@ -177,7 +177,7 @@ public class FileService
         
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
-            sftpClient.DeleteFile(task.DirectoryPath, filename);
+            sftpClient.DeleteFiles(task.DirectoryPath, filenames);
         }
     }
 }

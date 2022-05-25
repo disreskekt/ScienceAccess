@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Api.Exceptions;
 using Api.Models.Dtos;
 using Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -77,15 +78,19 @@ namespace Api.Controllers
         }
         
         [HttpDelete]
-        public async Task<IActionResult> DeleteFile([FromQuery] Guid taskId, [FromQuery] string filename)
+        public async Task<IActionResult> DeleteFiles([FromQuery] Guid taskId, [FromQuery] string[] filenames)
         {
             try
             {
                 int userId = GetCurrentUserId();
 
-                await _fileService.DeleteFile(userId, taskId, filename);
+                await _fileService.DeleteFiles(userId, taskId, filenames);
                 
                 return Ok();
+            }
+            catch (ExceptionList el)
+            {
+                return BadRequest(el.Message);
             }
             catch (Exception e)
             {
