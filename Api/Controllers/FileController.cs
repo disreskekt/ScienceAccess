@@ -83,7 +83,9 @@ namespace Api.Controllers
             {
                 int userId = GetCurrentUserId();
 
-                return Ok(_fileService.DeleteFile(userId, taskId, filename));
+                await _fileService.DeleteFile(userId, taskId, filename);
+                
+                return Ok();
             }
             catch (Exception e)
             {
