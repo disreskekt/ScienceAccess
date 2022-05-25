@@ -9,6 +9,6 @@ public class TicketRequest
     [ForeignKey("User")]
     public int Id { get; set; }
     public bool IsRequested { get; set; }
-    public string? Comment { get; set; }
+    public string Comment { get; set; }
     public int? Duration { get; set; }
 }
