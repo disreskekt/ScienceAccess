@@ -178,26 +178,16 @@ public class FileService
         
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
-            ExceptionList exceptionList = new ExceptionList();
-            
             foreach (string filename in deleteFilesModel.Filenames)
             {
-                bool isDeleted = sftpClient.DeleteFile(exceptionList, task.DirectoryPath, filename);
+                sftpClient.DeleteFile(task.DirectoryPath, filename);
 
-                if (isDeleted)
-                {
-                    Filename filenameToDelete = task.FileNames.Single(fname => fname.Name == filename);
+                Filename filenameToDelete = task.FileNames.Single(fname => fname.Name == filename);
 
-                    _db.Remove(filenameToDelete);
-                }
+                _db.Remove(filenameToDelete);
             }
 
             await _db.SaveChangesAsync();
-            
-            if (exceptionList.Any)
-            {
-                throw exceptionList;
-            }
         }
     }
 }

@@ -125,20 +125,14 @@ public class SftpService : IDisposable
             }
         }
 
-        public bool DeleteFile(ExceptionList exceptionList, string path, string filename)
+        public void DeleteFile(string path, string filename)
         {
             string fullPath = path + "/" + filename;
-                
-                if (!_client.Exists(fullPath))
-                {
-                    exceptionList.AddException(new WrongFilenameException($"{filename} doesn't exist"));
-                    
-                    return false;
-                }
-                
-                _client.DeleteFile(fullPath);
 
-                return true;
+            if (_client.Exists(fullPath))
+            {
+                _client.DeleteFile(fullPath);
+            }
         }
         
         private void AddFileToZip(ZipArchive zip, string path, string filename, string tempDateTime)
