@@ -19,7 +19,7 @@ public class ExceptionList : Exception
             foreach (Exception exception in _list)
             {
                 sb.Append(exception.Message);
-                sb.Append("\n\n");
+                sb.Append(Environment.NewLine);
             }
 
             return sb.ToString();

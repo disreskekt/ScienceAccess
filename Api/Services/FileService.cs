@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Data;
+using Api.Exceptions;
 using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
@@ -177,7 +178,26 @@ public class FileService
         
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
-            sftpClient.DeleteFiles(task.DirectoryPath, deleteFilesModel.Filenames);
+            ExceptionList exceptionList = new ExceptionList();
+            
+            foreach (string filename in deleteFilesModel.Filenames)
+            {
+                bool isDeleted = sftpClient.DeleteFile(exceptionList, task.DirectoryPath, filename);
+
+                if (isDeleted)
+                {
+                    Filename filenameToDelete = task.FileNames.Single(fname => fname.Name == filename);
+
+                    _db.Remove(filenameToDelete);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            
+            if (exceptionList.Any)
+            {
+                throw exceptionList;
+            }
         }
     }
 }
