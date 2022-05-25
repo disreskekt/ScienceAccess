@@ -31,28 +31,28 @@ public class FileService
 
     public async Task UploadFiles(UploadFilesDto uploadFilesModel)
     {
-        Ticket ticket = await _db.Tickets
-            .Include(ticket => ticket.User)
-            .Include(ticket => ticket.Task)
-            .ThenInclude(task => task.FileNames)
-            .FirstOrDefaultAsync(ticket => ticket.Id == uploadFilesModel.TaskId);
+        TicketTask task = await _db.Tasks
+            .Include(task => task.FileNames)
+            .Include(task => task.Ticket)
+            .ThenInclude(ticket => ticket.User)
+            .FirstOrDefaultAsync(task => task.Id == uploadFilesModel.TaskId);
 
-        if (ticket is null)
+        if (task is null)
         {
-            throw new Exception("Ticket doesn't exist");
+            throw new Exception("Task doesn't exist");
         }
 
-        if (!ticket.CanBeUsedRightNow())
+        if (!task.Ticket.CanBeUsedRightNow())
         {
             throw new Exception("Ticket can't be used");
         }
 
-        if (ticket.Task.Status is not TaskStatuses.NotStarted)
+        if (task.Status is not TaskStatuses.NotStarted)
         {
             throw new Exception("Task can't use new files");
         }
 
-        if (uploadFilesModel.Files is null || uploadFilesModel.Files.Count < 1)
+        if (uploadFilesModel.Files is null || !uploadFilesModel.Files.Any())
         {
             throw new Exception("No input files");
         }
@@ -61,29 +61,31 @@ public class FileService
 
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
-            if (string.IsNullOrEmpty(ticket.Task.DirectoryPath))
+            if (string.IsNullOrEmpty(task.DirectoryPath))
             {
-                ticket.Task.DirectoryPath = sftpClient.CreateUserFolder(ticket.User.Email);
+                task.DirectoryPath = sftpClient.CreateUserFolder(task.Ticket.User.Email);
             }
             else
             {
-                sftpClient.CheckUserFolder(ticket.Task.DirectoryPath);
+                sftpClient.CheckUserFolder(task.DirectoryPath);
             }
 
-            sendedFiles = sftpClient.SendFiles(uploadFilesModel.Files, ticket.Task.DirectoryPath);
+            string taskDirectory = task.DirectoryPath + "/" + task.Id;
+            
+            sendedFiles = sftpClient.SendFiles(uploadFilesModel.Files, taskDirectory);
         }
 
         foreach (string filename in sendedFiles)
         {
-            if (ticket.Task.FileNames.Select(fname => fname.Name).Contains(filename))
+            if (task.FileNames.Select(fname => fname.Name).Contains(filename))
             {
                 continue;
             }
             
-            ticket.Task.FileNames.Add(new Filename()
+            task.FileNames.Add(new Filename()
             {
                 Name = filename,
-                TaskId = ticket.Task.Id,
+                TaskId = task.Id,
                 Inputed = true,
             });
         }
@@ -130,22 +132,24 @@ public class FileService
             throw new Exception("This is not your task");
         }
 
-        if (downloadFilesModel.Filenames is null || downloadFilesModel.Filenames.Length < 1)
+        if (downloadFilesModel.Filenames is null || !downloadFilesModel.Filenames.Any())
         {
             throw new Exception("Specify files which you want to download");
         }
-
+        
+        string taskDirectory = task.DirectoryPath + "/" + task.Id;
+        
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
             if (downloadFilesModel.Filenames.Length == 1)
             {
                 string filename = downloadFilesModel.Filenames.First();
 
-                return sftpClient.GetFile(task.DirectoryPath, filename);
+                return sftpClient.GetFile(taskDirectory, filename);
             }
             else
             {
-                return sftpClient.GetFiles(task.DirectoryPath, downloadFilesModel.Filenames);
+                return sftpClient.GetFiles(taskDirectory, downloadFilesModel.Filenames);
             }
         }
     }
@@ -166,21 +170,23 @@ public class FileService
             throw new Exception("This is not your task");
         }
 
-        if (deleteFilesModel.Filenames is null || deleteFilesModel.Filenames.Length < 1)
+        if (deleteFilesModel.Filenames is null || !deleteFilesModel.Filenames.Any())
         {
             throw new Exception("Specify files which you want to delete");
         }
-
+        
         if (string.IsNullOrWhiteSpace(task.DirectoryPath))
         {
             throw new Exception("Nothing to delete");
         }
         
+        string taskDirectory = task.DirectoryPath + "/" + task.Id;
+        
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
             foreach (string filename in deleteFilesModel.Filenames)
             {
-                sftpClient.DeleteFile(task.DirectoryPath, filename);
+                sftpClient.DeleteFile(taskDirectory, filename);
 
                 Filename filenameToDelete = task.FileNames.Single(fname => fname.Name == filename);
 

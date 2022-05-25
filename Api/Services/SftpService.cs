@@ -33,7 +33,7 @@ public class SftpService : IDisposable
                 this.RestoreFolder(_baseFolderPath);
             }
 
-            string userDirectory = $"{_baseFolderPath}/{email}-{DateTime.Now:yyyyMMddTHHmmss}";
+            string userDirectory = $"{_baseFolderPath}/{email}";
 
             _client.CreateDirectory(userDirectory);
 

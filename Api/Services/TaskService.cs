@@ -43,7 +43,7 @@ public class TaskService
 
         await _db.Entry(ticket.Task).Collection(task => task.FileNames).LoadAsync();
 
-        if (ticket.Task.FileNames is null || ticket.Task.FileNames.Count < 1)
+        if (ticket.Task.FileNames is null || !ticket.Task.FileNames.Any())
         {
             throw new Exception("No input files");
         }
