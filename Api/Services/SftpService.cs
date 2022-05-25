@@ -56,7 +56,7 @@ public class SftpService : IDisposable
             {
                 string filePath = currentPath + "/" + file.FileName;
 
-                _client.UploadFile(file.OpenReadStream(), filePath, false);
+                _client.UploadFile(file.OpenReadStream(), filePath, true);
 
                 filenames.Add(file.FileName);
             }

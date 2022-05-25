@@ -74,6 +74,11 @@ public class FileService
 
         foreach (string filename in sendedFiles)
         {
+            if (ticket.Task.FileNames.Select(fname => fname.Name).Contains(filename))
+            {
+                continue;
+            }
+            
             ticket.Task.FileNames.Add(new Filename()
             {
                 Name = filename,
@@ -85,6 +90,30 @@ public class FileService
         await _db.SaveChangesAsync();
     }
 
+    public async Task<string[]> GetFiles(int userId, Guid taskId, bool? isInputed = null)
+    {
+        TicketTask task = await _db.Tasks.Include(task => task.Ticket)
+                                         .Include(task => task.FileNames)
+                                         .FirstOrDefaultAsync(task => task.Id == taskId);
+        
+        if (task is null)
+        {
+            throw new Exception("Task doesn't exist");
+        }
+        
+        if (task.Ticket.UserId != userId)
+        {
+            throw new Exception("This is not your task");
+        }
+
+        string[] filenames = task.FileNames
+            .Where(filename => isInputed is not null ? filename.Inputed == isInputed : true)
+            .Select(filename => filename.Name)
+            .ToArray();
+
+        return filenames;
+    }
+    
     public async Task<byte[]> DownloadFiles(DownloadFilesDto downloadFilesModel, int userId)
     {
         TicketTask task = await _db.Tasks.Include(task => task.Ticket)

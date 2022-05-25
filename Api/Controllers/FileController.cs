@@ -35,6 +35,21 @@ namespace Api.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableFiles([FromQuery] Guid taskId, [FromQuery] bool? isInputed = null)
+        {
+            try
+            {
+                int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value); //getting from token
+
+                return Ok(await _fileService.GetFiles(userId, taskId, isInputed));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
         [HttpPost]
         public async Task<IActionResult> DownloadFiles([FromBody] DownloadFilesDto downloadFilesModel)
         {
