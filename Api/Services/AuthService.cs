@@ -68,7 +68,7 @@ public class AuthService
 
         if (user is null)
         {
-            throw new Exception();
+            throw new UnauthorizedAccessException();
         }
 
         string token = GenerateJwt(user);

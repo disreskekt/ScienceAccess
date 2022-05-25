@@ -45,9 +45,13 @@ namespace Api.Controllers
 
                 return Ok(token);
             }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized("Wrong email or password");
+            }
             catch (Exception e)
             {
-                return Unauthorized(e.Message);
+                return BadRequest(e.Message);
             }
         }
     }
