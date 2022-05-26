@@ -26,26 +26,13 @@ public class SftpService : IDisposable
             _client.Connect();
         }
 
-        public string CreateUserFolder(string email)
+        public string RestoreTaskFolder(string email, string guid)
         {
-            if (!_client.Exists(_baseFolderPath))
-            {
-                this.RestoreFolder(_baseFolderPath);
-            }
+            string taskDirectory = $"{_baseFolderPath}/{email}/{guid}";
+            
+            RestoreFolder(taskDirectory);
 
-            string userDirectory = $"{_baseFolderPath}/{email}";
-
-            _client.CreateDirectory(userDirectory);
-
-            return userDirectory;
-        }
-
-        public void CheckUserFolder(string path)
-        {
-            if (!_client.Exists(path))
-            {
-                this.RestoreFolder(path);
-            }
+            return taskDirectory;
         }
         
         public IEnumerable<string> SendFiles(IFormFileCollection files, string currentPath)
@@ -159,8 +146,13 @@ public class SftpService : IDisposable
             }
         }
 
-        private void RestoreFolder(string pathToRestore)
+        public void RestoreFolder(string pathToRestore)
         {
+            if (_client.Exists(pathToRestore))
+            {
+                return;
+            }
+            
             if (!pathToRestore.StartsWith('/'))
             {
                 throw new ArgumentException("The path must match the format /dir/dir");

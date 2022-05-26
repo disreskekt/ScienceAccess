@@ -61,18 +61,16 @@ public class FileService
 
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
-            if (string.IsNullOrEmpty(task.DirectoryPath))
+            if (string.IsNullOrWhiteSpace(task.DirectoryPath))
             {
-                task.DirectoryPath = sftpClient.CreateUserFolder(task.Ticket.User.Email);
+                task.DirectoryPath = sftpClient.RestoreTaskFolder(task.Ticket.User.Email, task.Id.ToString());
             }
             else
             {
-                sftpClient.CheckUserFolder(task.DirectoryPath);
+                sftpClient.RestoreFolder(task.DirectoryPath);
             }
-
-            string taskDirectory = task.DirectoryPath + "/" + task.Id;
             
-            sendedFiles = sftpClient.SendFiles(uploadFilesModel.Files, taskDirectory);
+            sendedFiles = sftpClient.SendFiles(uploadFilesModel.Files, task.DirectoryPath);
         }
 
         foreach (string filename in sendedFiles)
@@ -137,19 +135,17 @@ public class FileService
             throw new Exception("Specify files which you want to download");
         }
         
-        string taskDirectory = task.DirectoryPath + "/" + task.Id;
-        
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
             if (downloadFilesModel.Filenames.Length == 1)
             {
                 string filename = downloadFilesModel.Filenames.First();
 
-                return sftpClient.GetFile(taskDirectory, filename);
+                return sftpClient.GetFile(task.DirectoryPath, filename);
             }
             else
             {
-                return sftpClient.GetFiles(taskDirectory, downloadFilesModel.Filenames);
+                return sftpClient.GetFiles(task.DirectoryPath, downloadFilesModel.Filenames);
             }
         }
     }
@@ -180,13 +176,11 @@ public class FileService
             throw new Exception("Nothing to delete");
         }
         
-        string taskDirectory = task.DirectoryPath + "/" + task.Id;
-        
         using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
         {
             foreach (string filename in deleteFilesModel.Filenames)
             {
-                sftpClient.DeleteFile(taskDirectory, filename);
+                sftpClient.DeleteFile(task.DirectoryPath, filename);
 
                 Filename filenameToDelete = task.FileNames.Single(fname => fname.Name == filename);
 
