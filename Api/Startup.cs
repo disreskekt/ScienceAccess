@@ -44,6 +44,7 @@ namespace Api
             services.AddTransient<TicketService>();
             services.AddTransient<TaskService>();
             services.AddTransient<FileService>();
+            services.AddTransient<GlobalParametersService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
