@@ -22,7 +22,7 @@ namespace Api.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> UploadFiles([FromForm] UploadFilesDto uploadFilesModel)
+        public async Task<IActionResult> UploadFiles([FromForm] UploadFiles uploadFilesModel)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace Api.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> DownloadFiles([FromBody] DownloadFilesDto downloadFilesModel)
+        public async Task<IActionResult> DownloadFiles([FromBody] DownloadFiles downloadFilesModel)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace Api.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> DeleteFiles([FromBody] DeleteFilesDto deleteFilesModel)
+        public async Task<IActionResult> DeleteFiles([FromBody] DeleteFiles deleteFilesModel)
         {
             try
             {

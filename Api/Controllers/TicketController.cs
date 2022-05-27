@@ -22,13 +22,13 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> RequestTicket([FromBody] TicketRequestDto ticketRequestDto)
+        public async Task<IActionResult> RequestTicket([FromBody] RequestTicket requestTicket)
         {
             try
             {
                 int userId = GetCurrentUserId();
 
-                await _ticketService.RequestTicket(userId, ticketRequestDto.Comment, ticketRequestDto.Duration);
+                await _ticketService.RequestTicket(userId, requestTicket.Comment, requestTicket.Duration);
 
                 return Ok("Ticket is requested");
             }

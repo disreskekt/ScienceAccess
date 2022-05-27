@@ -29,7 +29,7 @@ public class FileService
         _linuxCredentials = linuxCredentials.Value;
     }
 
-    public async Task UploadFiles(UploadFilesDto uploadFilesModel)
+    public async Task UploadFiles(UploadFiles uploadFilesModel)
     {
         TicketTask task = await _db.Tasks
             .Include(task => task.FileNames)
@@ -115,7 +115,7 @@ public class FileService
         return filenames;
     }
     
-    public async Task<byte[]> DownloadFiles(DownloadFilesDto downloadFilesModel, int userId)
+    public async Task<byte[]> DownloadFiles(DownloadFiles downloadFilesModel, int userId)
     {
         TicketTask task = await _db.Tasks.Include(task => task.Ticket)
                                          .FirstOrDefaultAsync(task => task.Id == downloadFilesModel.TaskId);
@@ -150,7 +150,7 @@ public class FileService
         }
     }
 
-    public async Task DeleteFiles(DeleteFilesDto deleteFilesModel, int userId)
+    public async Task DeleteFiles(DeleteFiles deleteFilesModel, int userId)
     {
         TicketTask task = await _db.Tasks.Include(task => task.FileNames)
                                          .Include(task => task.Ticket)
