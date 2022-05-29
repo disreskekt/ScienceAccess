@@ -45,6 +45,7 @@ public class UserService
     public async Task<List<AllUsersDto>> GetAll()
     {
         List<User> usersList = await _db.Users
+            .Include(user => user.TicketRequest)
             .Include(user => user.Tickets)
             .ThenInclude(ticket => ticket.Task)
             .ToListAsync();

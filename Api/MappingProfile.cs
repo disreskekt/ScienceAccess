@@ -17,6 +17,8 @@ namespace Api
                     options => options.MapFrom(
                         source => source.Name + " " + source.Lastname));
 
+            CreateMap<TicketRequest, AllUsersRequestDto>();
+
             CreateMap<User, UserDto>() //dont forget to .Include() Tickets and Role
                 .ForMember(
                     dest => dest.FullName,
