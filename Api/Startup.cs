@@ -2,6 +2,7 @@ using Api.Data;
 using Api.Extensions;
 using Api.Options;
 using Api.Services;
+using Api.Services.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -33,11 +34,15 @@ namespace Api
 
             services.AddOptions<LinuxCredentials>(this.Configuration, "Linux");
             services.AddOptions<BaseFolder>(this.Configuration, "UserFolder");
+            services.AddOptions<ProgramVersionsFolder>(this.Configuration, "ProgramVersionsFolder");
             
             AuthOptions authOptions = services.AddOptions<AuthOptions>(this.Configuration, "Auth");
             services.AddJwtAuthentication(authOptions);
             services.AddSwagger("ScienceAccess");
             services.AddAutoMapper(typeof(MappingProfile));
+            
+            services.AddTransient<SftpService>();
+            services.AddTransient<SshService>();
 
             services.AddTransient<AuthService>();
             services.AddTransient<UserService>();
@@ -45,6 +50,9 @@ namespace Api
             services.AddTransient<TaskService>();
             services.AddTransient<FileService>();
             services.AddTransient<GlobalParametersService>();
+            services.AddTransient<QueueService>();
+
+            services.AddHostedService<TaskManagerService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

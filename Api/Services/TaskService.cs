@@ -56,8 +56,12 @@ public class TaskService
             Match match = jobExtensionRegex.Match(filename);
             if (match.Success)
             {
+                if (jobExtensionfound)
+                {
+                    throw new Exception("You can upload only one .job file");
+                }
+
                 jobExtensionfound = true;
-                break;
             }
         }
 
@@ -65,9 +69,11 @@ public class TaskService
         {
             throw new Exception("No file with .job extension");
         }
-
+        
         //todo start computing
-
+        
+        
+        
         //todo some actions
 
         await _db.SaveChangesAsync();

@@ -7,8 +7,10 @@ using Api.Data;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
+using Api.Options;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Task = System.Threading.Tasks.Task;
 using TicketTask = Api.Models.Task;
 
@@ -18,11 +20,15 @@ public class TicketService
 {
     private readonly Context _db;
     private readonly IMapper _mapper;
+    private readonly SftpService _sftpService;
+    private readonly string _programVersionsFolder;
 
-    public TicketService(Context context, IMapper mapper)
+    public TicketService(Context context, IMapper mapper, SftpService sftpService, IOptions<ProgramVersionsFolder> programVersionsFolder)
     {
         _db = context;
         _mapper = mapper;
+        _sftpService = sftpService;
+        _programVersionsFolder = programVersionsFolder.Value.Path;
     }
 
     public async Task RequestTicket(int userId, string comment, int? duration)
@@ -103,6 +109,13 @@ public class TicketService
             throw new Exception("User doesn't exist");
         }
 
+        string[] listOfFiles = _sftpService.ListOfFiles(_programVersionsFolder);
+
+        if (!listOfFiles.Contains(giveTicketsModel.ProgramVersion))
+        {
+            throw new Exception("Program version with this name doesn't exist");
+        }
+
         user.TicketRequest.IsRequested = false;
 
         Ticket[] newTickets = new Ticket[giveTicketsModel.Count];
@@ -117,6 +130,7 @@ public class TicketService
                 IsCanceled = false,
                 Task = new TicketTask
                 {
+                    ProgramVersion = giveTicketsModel.ProgramVersion,
                     Status = TaskStatuses.NotStarted
                 }
             };

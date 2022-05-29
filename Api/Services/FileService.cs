@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Data;
-using Api.Exceptions;
 using Api.Helpers;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Models.Enums;
-using Api.Options;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Task = System.Threading.Tasks.Task;
 using TicketTask = Api.Models.Task;
 
@@ -19,14 +16,12 @@ namespace Api.Services;
 public class FileService
 {
     private readonly Context _db;
-    private readonly string _baseFolderPath;
-    private readonly LinuxCredentials _linuxCredentials;
+    private readonly SftpService _sftpService;
 
-    public FileService(Context context, IOptions<LinuxCredentials> linuxCredentials, IOptions<BaseFolder> baseFolder)
+    public FileService(Context context, SftpService sftpService)
     {
         _db = context;
-        _baseFolderPath = baseFolder.Value.Path;
-        _linuxCredentials = linuxCredentials.Value;
+        _sftpService = sftpService;
     }
 
     public async Task UploadFiles(UploadFiles uploadFilesModel)
@@ -57,21 +52,16 @@ public class FileService
             throw new Exception("No input files");
         }
 
-        IEnumerable<string> sendedFiles;
-
-        using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
+        if (string.IsNullOrWhiteSpace(task.DirectoryPath))
         {
-            if (string.IsNullOrWhiteSpace(task.DirectoryPath))
-            {
-                task.DirectoryPath = sftpClient.RestoreTaskFolder(task.Ticket.User.Email, task.Id.ToString());
-            }
-            else
-            {
-                sftpClient.RestoreFolder(task.DirectoryPath);
-            }
-            
-            sendedFiles = sftpClient.SendFiles(uploadFilesModel.Files, task.DirectoryPath);
+            task.DirectoryPath = _sftpService.RestoreTaskFolder(task.Ticket.User.Email, task.Id.ToString());
         }
+        else
+        {
+            _sftpService.RestoreFolder(task.DirectoryPath);
+        }
+
+        IEnumerable<string> sendedFiles = _sftpService.SendFiles(uploadFilesModel.Files, task.DirectoryPath);
 
         foreach (string filename in sendedFiles)
         {
@@ -134,19 +124,16 @@ public class FileService
         {
             throw new Exception("Specify files which you want to download");
         }
-        
-        using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
-        {
-            if (downloadFilesModel.Filenames.Length == 1)
-            {
-                string filename = downloadFilesModel.Filenames.First();
 
-                return sftpClient.GetFile(task.DirectoryPath, filename);
-            }
-            else
-            {
-                return sftpClient.GetFiles(task.DirectoryPath, downloadFilesModel.Filenames);
-            }
+        if (downloadFilesModel.Filenames.Length == 1)
+        {
+            string filename = downloadFilesModel.Filenames.First();
+
+            return _sftpService.GetFile(task.DirectoryPath, filename);
+        }
+        else
+        {
+            return _sftpService.GetFiles(task.DirectoryPath, downloadFilesModel.Filenames);
         }
     }
 
@@ -175,19 +162,16 @@ public class FileService
         {
             throw new Exception("Nothing to delete");
         }
-        
-        using (SftpService sftpClient = new SftpService(_linuxCredentials, _baseFolderPath))
+
+        foreach (string filename in deleteFilesModel.Filenames)
         {
-            foreach (string filename in deleteFilesModel.Filenames)
-            {
-                sftpClient.DeleteFile(task.DirectoryPath, filename);
+            _sftpService.DeleteFile(task.DirectoryPath, filename);
 
-                Filename filenameToDelete = task.FileNames.Single(fname => fname.Name == filename);
+            Filename filenameToDelete = task.FileNames.Single(fname => fname.Name == filename);
 
-                _db.Remove(filenameToDelete);
-            }
-
-            await _db.SaveChangesAsync();
+            _db.Remove(filenameToDelete);
         }
+
+        await _db.SaveChangesAsync();
     }
 }

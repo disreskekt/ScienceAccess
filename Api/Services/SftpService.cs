@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using Api.Exceptions;
 using Api.Options;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using Renci.SshNet;
 
 namespace Api.Services;
@@ -14,9 +16,11 @@ public class SftpService : IDisposable
         private readonly SftpClient _client;
         private readonly string _baseFolderPath;
 
-        public SftpService(LinuxCredentials linuxCredentials, string baseFolderPath)
+        public SftpService(IOptions<BaseFolder> baseFolderOptions, IOptions<LinuxCredentials> linuxCredentialOptions)
         {
-            _baseFolderPath = baseFolderPath;
+            _baseFolderPath = baseFolderOptions.Value.Path;
+
+            LinuxCredentials linuxCredentials = linuxCredentialOptions.Value;
 
             _client = new SftpClient(linuxCredentials.Host,
                 linuxCredentials.Port,
@@ -51,6 +55,16 @@ public class SftpService : IDisposable
             return filenames;
         }
 
+        public string[] ListOfFiles(string path)
+        {
+            if (!_client.Exists(path))
+            {
+                throw new WrongFilenameException($"{path} doesn't exist");
+            }
+            
+            return _client.ListDirectory(path).Select(file => file.Name).ToArray();
+        }
+        
         public byte[] GetFile(string path, string filename)
         {
             string fullPath = path + "/" + filename;

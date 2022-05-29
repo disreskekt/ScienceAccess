@@ -2,20 +2,19 @@
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Api.Data;
 using Api.Options;
-using AutoMapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Api.Services;
 
 public class GlobalParametersService
 {
-    private readonly Context _db;
-    private readonly IMapper _mapper;
-    
     private static readonly JsonSerializerOptions _jsonWriteOptions;
     public static GlobalParameters GlobalParameters { get; set; }
+    
+    private readonly SftpService _sftpService;
+    private readonly string _programVersionsFolder;
 
     static GlobalParametersService()
     {
@@ -31,13 +30,13 @@ public class GlobalParametersService
             WriteIndented = true
         };
     }
-    
-    public GlobalParametersService(Context context, IMapper mapper)
-    {
-        _db = context;
-        _mapper = mapper;
-    }
 
+    public GlobalParametersService(SftpService sftpService, IOptions<ProgramVersionsFolder> programVersionsFolder)
+    {
+        _sftpService = sftpService;
+        _programVersionsFolder = programVersionsFolder.Value.Path;
+    }
+    
     public GlobalParameters GetGlobalParameters()
     {
         return GlobalParameters;
@@ -52,5 +51,10 @@ public class GlobalParametersService
         await File.WriteAllTextAsync(appSettingsPath, newJson);
 
         return GetGlobalParameters();
+    }
+
+    public string[] GetAvailableProgramVersions()
+    {
+        return _sftpService.ListOfFiles(_programVersionsFolder);
     }
 }

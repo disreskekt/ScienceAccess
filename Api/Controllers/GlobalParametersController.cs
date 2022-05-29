@@ -49,5 +49,20 @@ namespace Api.Controllers
                 return BadRequest(e.Message);
             }
         }
+        
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableProgramVersions()
+        {
+            try
+            {
+                string[] availableProgramVersions = _globalParametersService.GetAvailableProgramVersions();
+                
+                return Ok(availableProgramVersions);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }

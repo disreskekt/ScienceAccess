@@ -9,3 +9,4 @@ Api/appsettings.json
 Api/appsettings.Development.json
 Api/Properties/launchSettings.json
 .vs
+Api/Controllers/TestController.cs
