@@ -1,6 +1,6 @@
 ﻿namespace Api.Models.Dtos;
 
-public class AllUsersRequestDto
+public class UserTicketRequestDto
 {
     public bool IsRequested { get; set; }
     public string Comment { get; set; }
