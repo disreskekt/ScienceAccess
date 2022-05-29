@@ -15,7 +15,11 @@ namespace Api
                 .ForMember(
                     dest => dest.FullName,
                     options => options.MapFrom(
-                        source => source.Name + " " + source.Lastname));
+                        source => source.Name + " " + source.Lastname))
+                .ForMember(
+                    dest => dest.TicketRequest,
+                    options => options.MapFrom(
+                        source => source.TicketRequest.IsRequested));
 
             CreateMap<User, UserDto>() //dont forget to .Include() Tickets and Role
                 .ForMember(
@@ -35,7 +39,11 @@ namespace Api
                 .ForMember(
                     dest => dest.RoleName,
                     options => options.MapFrom(
-                        source => source.Role.RoleName));
+                        source => source.Role.RoleName))
+                .ForMember(
+                    dest => dest.TicketRequest,
+                    options => options.MapFrom(
+                        source => source.TicketRequest.IsRequested));
 
             CreateMap<TicketRequest, UserTicketRequestDto>();
             
