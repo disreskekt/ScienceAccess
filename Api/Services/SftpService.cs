@@ -8,6 +8,7 @@ using Api.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Renci.SshNet;
+using Renci.SshNet.Sftp;
 
 namespace Api.Services;
 
@@ -74,8 +75,12 @@ public class SftpService : IDisposable
             {
                 throw new WrongFilenameException($"{path} doesn't exist");
             }
+
+            List<SftpFile> listDirectory = _client.ListDirectory(path).ToList();
+
+            listDirectory.RemoveAll(file => file.Name is "." or "..");
             
-            return _client.ListDirectory(path).Select(file => file.Name).ToArray();
+            return listDirectory.Select(file => file.Name).ToArray();
         }
         
         public byte[] GetFile(string path, string filename)
