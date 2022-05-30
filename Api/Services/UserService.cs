@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Api.Data;
 using Api.Helpers;
@@ -42,13 +43,15 @@ public class UserService
         await _db.SaveChangesAsync();
     }
 
-    public async Task<List<AllUsersDto>> GetAll()
+    public async Task<List<AllUsersDto>> GetAll(int exceptId)
     {
         List<User> usersList = await _db.Users
             .Include(user => user.TicketRequest)
             .Include(user => user.Tickets)
             .ThenInclude(ticket => ticket.Task)
             .ToListAsync();
+
+        usersList.Remove(usersList.Find(user => user.Id == exceptId));
 
         List<AllUsersDto> userDtosList = _mapper.Map<List<AllUsersDto>>(usersList);
 

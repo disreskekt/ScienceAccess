@@ -44,7 +44,9 @@ namespace Api.Controllers
         {
             try
             {
-                List<AllUsersDto> userDtosList = await _userService.GetAll();
+                int userId = GetCurrentUserId();
+                
+                List<AllUsersDto> userDtosList = await _userService.GetAll(userId);
 
                 return Ok(userDtosList);
             }
