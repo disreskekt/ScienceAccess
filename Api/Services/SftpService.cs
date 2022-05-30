@@ -26,12 +26,15 @@ public class SftpService : IDisposable
                 linuxCredentials.Port,
                 linuxCredentials.Username,
                 linuxCredentials.Password);
-
-            _client.Connect();
         }
 
         public string RestoreTaskFolder(string email, string guid)
         {
+            if (!_client.IsConnected)
+            {
+                _client.Connect();
+            }
+            
             string taskDirectory = $"{_baseFolderPath}/{email}/{guid}";
             
             RestoreFolder(taskDirectory);
@@ -41,6 +44,11 @@ public class SftpService : IDisposable
         
         public IEnumerable<string> SendFiles(IFormFileCollection files, string currentPath)
         {
+            if (!_client.IsConnected)
+            {
+                _client.Connect();
+            }
+            
             List<string> filenames = new List<string>(files.Count);
 
             foreach (IFormFile file in files)
@@ -57,6 +65,11 @@ public class SftpService : IDisposable
 
         public string[] ListOfFiles(string path)
         {
+            if (!_client.IsConnected)
+            {
+                _client.Connect();
+            }
+            
             if (!_client.Exists(path))
             {
                 throw new WrongFilenameException($"{path} doesn't exist");
@@ -67,6 +80,11 @@ public class SftpService : IDisposable
         
         public byte[] GetFile(string path, string filename)
         {
+            if (!_client.IsConnected)
+            {
+                _client.Connect();
+            }
+            
             string fullPath = path + "/" + filename;
 
             if (!_client.Exists(fullPath))
@@ -84,6 +102,11 @@ public class SftpService : IDisposable
 
         public byte[] GetFiles(string path, string[] filenames)
         {
+            if (!_client.IsConnected)
+            {
+                _client.Connect();
+            }
+            
             string tempDateTime = "";
             
             try
@@ -128,6 +151,11 @@ public class SftpService : IDisposable
 
         public void DeleteFile(string path, string filename)
         {
+            if (!_client.IsConnected)
+            {
+                _client.Connect();
+            }
+            
             string fullPath = path + "/" + filename;
 
             if (_client.Exists(fullPath))
@@ -162,6 +190,11 @@ public class SftpService : IDisposable
 
         public void RestoreFolder(string pathToRestore)
         {
+            if (!_client.IsConnected)
+            {
+                _client.Connect();
+            }
+            
             if (_client.Exists(pathToRestore))
             {
                 return;
@@ -196,7 +229,10 @@ public class SftpService : IDisposable
 
         public void Dispose()
         {
-            _client.Disconnect();
+            if (!_client.IsConnected)
+            {
+                _client.Disconnect();
+            }
 
             _client.Dispose();
         }
