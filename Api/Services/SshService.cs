@@ -31,7 +31,7 @@ public class SshService : IDisposable
         return command.Result;
     }
 
-    public void RunTask(string directory, string programPath, string jobFileName, int gpu, int streams)
+    public void RunTask(string directory, string programPath, string jobFileName, int gpu, string streams)
     {
         if (!_client.IsConnected)
         {

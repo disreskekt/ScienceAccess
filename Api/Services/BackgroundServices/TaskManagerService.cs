@@ -73,10 +73,10 @@ public class TaskManagerService : BaseBackgroundService
 
             if (!_globalParametersService
                 .GetGlobalParameters()
-                .VideocardStreams
-                .TryGetValue(freeGpu.ToString(), out int streams))
+                .GlobalParametersDictionary
+                .TryGetValue(freeGpu.ToString(), out string streams))
             {
-                streams = 1;
+                streams = "qwe";
             }
 
             _sshService.RunTask(taskFromQueue.DirectoryPath, programPath, jobFile, freeGpu, streams);

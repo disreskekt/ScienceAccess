@@ -4,5 +4,5 @@ namespace Api.Options;
 
 public class GlobalParameters
 {
-    public Dictionary<string, int> VideocardStreams { get; set; }
+    public Dictionary<string, string> GlobalParametersDictionary { get; set; }
 }
