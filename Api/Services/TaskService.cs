@@ -15,10 +15,14 @@ namespace Api.Services;
 public class TaskService
 {
     private readonly Context _db;
+    private readonly QueueService _queueService;
+    private readonly BackgroundServiceManager _backgroundServiceManager;
 
-    public TaskService(Context context)
+    public TaskService(Context context, QueueService queueService, BackgroundServiceManager backgroundServiceManager)
     {
         _db = context;
+        _queueService = queueService;
+        _backgroundServiceManager = backgroundServiceManager;
     }
 
     public async Task StartTask(StartTask startTaskModel)
@@ -69,14 +73,14 @@ public class TaskService
         {
             throw new Exception("No file with .job extension");
         }
-        
-        //todo start computing
-        
-        
-        
-        //todo some actions
+
+        await _queueService.AddToQueue(ticket.Task);
+
+        ticket.Task.Status = TaskStatuses.Pending;
 
         await _db.SaveChangesAsync();
+
+        _backgroundServiceManager.FastTaskCheck(); //that's right
     }
 
     public async Task StopTask(Guid taskId, int userId)

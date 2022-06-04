@@ -1,9 +1,13 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Api.Data;
 using Api.Helpers;
+using Api.Models.Enums;
 using Api.Models.NvidiaSmiModels;
 using Api.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using TicketTask = Api.Models.Task;
 
@@ -11,31 +15,34 @@ namespace Api.Services.BackgroundServices;
 
 public class TaskManagerService : BaseBackgroundService
 {
+    private readonly IServiceProvider _services;
     private readonly QueueService _queueService;
     private readonly SshService _sshService;
     private readonly GlobalParametersService _globalParametersService;
     private readonly string _programVersionsFolder;
 
     public TaskManagerService(
+        IServiceProvider services,
         QueueService queueService,
         SshService sshService,
         GlobalParametersService globalParametersService,
         IOptions<ProgramVersionsFolder> programVersionsFolder)
     {
+        _services = services;
         _queueService = queueService;
         _sshService = sshService;
         _globalParametersService = globalParametersService;
         _programVersionsFolder = programVersionsFolder.Value.Path;
     }
 
-    protected override int ExecutionInterval => 30000;
+    protected override int ExecutionInterval => 60000;
     protected override async Task DoWork(CancellationToken cancellationToken)
     {
         NvidiaSmiModel nvidiaSmiResult = GetParsedStatus();
         
-        CheckRunningTasks(nvidiaSmiResult);
+        await CheckRunningTasks(nvidiaSmiResult);
         
-        RunTasksFromQueue(nvidiaSmiResult);
+        await RunTasksFromQueue(nvidiaSmiResult);
     }
 
     private NvidiaSmiModel GetParsedStatus()
@@ -45,7 +52,7 @@ public class TaskManagerService : BaseBackgroundService
         return NvidiaSmiParser.ParseNvidiaSmiResult(status);
     }
 
-    private void RunTasksFromQueue(NvidiaSmiModel nvidiaSmiResult)
+    private async Task RunTasksFromQueue(NvidiaSmiModel nvidiaSmiResult)
     {
         while (nvidiaSmiResult.HasFreeGpu)
         {
@@ -56,8 +63,6 @@ public class TaskManagerService : BaseBackgroundService
                 break;
             }
 
-            string directory = taskFromQueue.DirectoryPath + '/' + taskFromQueue.Id;
-
             string programPath = _programVersionsFolder + '/' + taskFromQueue.ProgramVersion;
 
             string jobFile = taskFromQueue.FileNames.Select(filename => filename.Name)
@@ -66,25 +71,80 @@ public class TaskManagerService : BaseBackgroundService
             int freeGpu = nvidiaSmiResult.Gpus
                 .First(gpu => !nvidiaSmiResult.Processes.Select(proc => proc.Gpu).Contains(gpu.Id)).Id;
 
-            int streams = _globalParametersService.GetGlobalParameters().VideocardStreams[freeGpu.ToString()];
+            if (!_globalParametersService
+                .GetGlobalParameters()
+                .VideocardStreams
+                .TryGetValue(freeGpu.ToString(), out int streams))
+            {
+                streams = 1;
+            }
 
-            _sshService.RunTask(directory, programPath, jobFile, freeGpu, streams);
+            _sshService.RunTask(taskFromQueue.DirectoryPath, programPath, jobFile, freeGpu, streams);
 
-            _queueService.AddToRunningTasks(freeGpu, taskFromQueue);
+            Process startedProcess = GetParsedStatus().Processes.FirstOrDefault(proc => proc.Gpu == freeGpu);
+
+            if (startedProcess is null)
+            {
+                _queueService.AddToFinishedQueue(taskFromQueue);
+                
+                using (IServiceScope serviceScope = _services.CreateScope())
+                {
+                    Context db = (Context) serviceScope.ServiceProvider.GetService(typeof(Context)) ??
+                                 throw new InvalidOperationException();
+                    
+                    TicketTask trackingTask = db.Find<TicketTask>(taskFromQueue.Id) ?? throw new InvalidOperationException();
+                    
+                    trackingTask.Status = TaskStatuses.Done;
+                    
+                    //todo add output filenames
+                    
+                    await db.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                _queueService.AddToRunningTasks(startedProcess, taskFromQueue);
+
+                using (IServiceScope serviceScope = _services.CreateScope())
+                {
+                    Context db = (Context) serviceScope.ServiceProvider.GetService(typeof(Context)) ??
+                                 throw new InvalidOperationException();
+                    
+                    TicketTask trackingTask = db.Find<TicketTask>(taskFromQueue.Id) ?? throw new InvalidOperationException();
+                    
+                    trackingTask.Status = TaskStatuses.InProgress;
+
+                    await db.SaveChangesAsync();
+                }
+            }
         }
     }
 
-    private void CheckRunningTasks(NvidiaSmiModel nvidiaSmiResult)
+    private async Task CheckRunningTasks(NvidiaSmiModel nvidiaSmiResult)
     {
-        int[] runningGpusFromStatus = nvidiaSmiResult.Processes.Select(proc => proc.Gpu).ToArray();
+        Process[] runningProcessesToUpdate = _queueService.GetRunningProcesses();
 
-        int[] runningGpusToUpdate = _queueService.GetRunningGpus();
-
-        foreach (int gpu in runningGpusToUpdate)
+        foreach (Process process in runningProcessesToUpdate)
         {
-            if (!runningGpusFromStatus.Contains(gpu))
+            if (!nvidiaSmiResult.Processes.Contains(process))
             {
-                _queueService.AddToFinishedQueue(_queueService.RemoveRunningTask(gpu));
+                TicketTask task = _queueService.RemoveRunningTask(process);
+                
+                _queueService.AddToFinishedQueue(task);
+
+                using (IServiceScope serviceScope = _services.CreateScope())
+                {
+                    Context db = (Context) serviceScope.ServiceProvider.GetService(typeof(Context)) ??
+                                 throw new InvalidOperationException();
+                    
+                    TicketTask trackingTask = db.Find<TicketTask>(task.Id) ?? throw new InvalidOperationException();
+                    
+                    trackingTask.Status = TaskStatuses.Done;
+                
+                    //todo add output filenames
+                    
+                    await db.SaveChangesAsync();
+                }
             }
         }
     }

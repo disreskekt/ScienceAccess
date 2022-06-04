@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Api.Exceptions;
 using Microsoft.Extensions.Hosting;
 
 namespace Api.Services.BackgroundServices
@@ -21,9 +20,9 @@ namespace Api.Services.BackgroundServices
         {
             if (this.DoWorkStatus is TaskStatus.Running)
             {
-                throw new TaskRunningException("DoWork already in progress");
+                return;
             }
-
+            
             try
             {
                 this.DoWorkStatus = TaskStatus.Running;

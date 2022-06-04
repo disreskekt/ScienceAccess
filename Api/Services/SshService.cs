@@ -37,12 +37,22 @@ public class SshService : IDisposable
         {
             _client.Connect();
         }
-        
-        _client.RunCommand($"cd {directory}");
 
-        _client.RunCommand($"{programPath} -cfg {jobFileName} -gpu {gpu} -streams {streams} >out.out 2>&1 &");
+        string cdCommand = $"cd {directory}";
+        string mainCommand = $"{programPath} -cfg {jobFileName} -gpu {gpu} -streams {streams} >out.txt 2>&1 \\&";
+        string disownCommand = "disown -r";
 
-        _client.RunCommand("disown -r");
+        _client.RunCommand($"{cdCommand} && {mainCommand} && {disownCommand}");
+    }
+
+    public string RunCustomCommand(string command)
+    {
+        if (!_client.IsConnected)
+        {
+            _client.Connect();
+        }
+
+        return _client.RunCommand(command).Result;
     }
     
     public void Dispose()

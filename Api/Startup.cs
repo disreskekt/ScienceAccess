@@ -51,8 +51,9 @@ namespace Api
             services.AddTransient<FileService>();
             services.AddTransient<GlobalParametersService>();
             services.AddTransient<QueueService>();
-
+            
             services.AddHostedService<TaskManagerService>();
+            services.AddTransient<BackgroundServiceManager>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
