@@ -33,6 +33,11 @@ public class TicketService
 
     public async Task RequestTicket(int userId, string comment, int? duration)
     {
+        if (comment.Length > 300)
+        {
+            throw new Exception("Too much symbols");
+        }
+        
         User user = await _db.Users
             .Include(user => user.TicketRequest)
             .FirstOrDefaultAsync(user => user.Id == userId);
