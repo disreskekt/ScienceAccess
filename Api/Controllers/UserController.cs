@@ -38,15 +38,15 @@ namespace Api.Controllers
             }
         }
         
-        [HttpGet]
+        [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromBody] FilterUsers filterUsers)
         {
             try
             {
                 int userId = GetCurrentUserId();
                 
-                List<AllUsersDto> userDtosList = await _userService.GetAll(userId);
+                List<AllUsersDto> userDtosList = await _userService.GetAll(filterUsers, userId);
 
                 return Ok(userDtosList);
             }

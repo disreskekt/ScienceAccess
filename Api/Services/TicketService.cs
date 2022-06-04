@@ -235,10 +235,10 @@ public class TicketService
         expressionsArray[1] = filterTicketsModel.ExpirationStatus switch
         {
             TicketExpirationStatuses.Pending => ticket =>
-                ticket.StartTime <= DateTime.Now && ticket.EndTime > DateTime.Now,
+                ticket.StartTime.ToLocalTime() > DateTime.Now,
             TicketExpirationStatuses.Available => ticket =>
-                ticket.StartTime <= DateTime.Now && ticket.EndTime > DateTime.Now,
-            TicketExpirationStatuses.Expired => ticket => ticket.EndTime <= DateTime.Now,
+                ticket.StartTime.ToLocalTime() <= DateTime.Now && ticket.EndTime.ToLocalTime() > DateTime.Now,
+            TicketExpirationStatuses.Expired => ticket => ticket.EndTime.ToLocalTime() <= DateTime.Now,
             null => null,
             _ => throw new ArgumentOutOfRangeException(nameof(filterTicketsModel.UsageStatus))
         };
@@ -266,6 +266,12 @@ public class TicketService
             dbTickets = dbTickets.Where(expression);
         }
 
+        dbTickets = filterTicketsModel.PageNumber > 1
+            ? dbTickets
+                .Skip((filterTicketsModel.PageNumber - 1) * filterTicketsModel.PageSize)
+                .Take(filterTicketsModel.PageSize)
+            : dbTickets.Take(filterTicketsModel.PageSize);
+        
         List<TicketDto> ticketDtos = _mapper.Map<List<TicketDto>>(await dbTickets.ToListAsync());
 
         return ticketDtos;

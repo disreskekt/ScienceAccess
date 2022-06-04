@@ -43,17 +43,19 @@ public class UserService
         await _db.SaveChangesAsync();
     }
 
-    public async Task<List<AllUsersDto>> GetAll(int exceptId)
+    public async Task<List<AllUsersDto>> GetAll(FilterUsers filterUsers, int exceptId)
     {
-        List<User> usersList = await _db.Users
+        IQueryable<User> users = _db.Users
+            .Except(_db.Users.Where(user => user.Id == exceptId))
             .Include(user => user.TicketRequest)
             .Include(user => user.Tickets)
-            .ThenInclude(ticket => ticket.Task)
-            .ToListAsync();
+            .ThenInclude(ticket => ticket.Task);
 
-        usersList.Remove(usersList.Find(user => user.Id == exceptId));
+        users = filterUsers.PageNumber > 1 ?
+            users.Skip((filterUsers.PageNumber - 1) * filterUsers.PageSize).Take(filterUsers.PageSize) :
+            users.Take(filterUsers.PageSize);
 
-        List<AllUsersDto> userDtosList = _mapper.Map<List<AllUsersDto>>(usersList);
+        List<AllUsersDto> userDtosList = _mapper.Map<List<AllUsersDto>>(await users.ToListAsync());
 
         return userDtosList;
     }
