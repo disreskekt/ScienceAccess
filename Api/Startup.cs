@@ -1,8 +1,10 @@
 using Api.Data;
 using Api.Extensions;
+using Api.Models.NvidiaSmiModels;
 using Api.Options;
 using Api.Services;
 using Api.Services.BackgroundServices;
+using Api.Services.BackgroundServices.Implementations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +53,8 @@ namespace Api
             services.AddTransient<FileService>();
             services.AddTransient<GlobalParametersService>();
             services.AddTransient<QueueService>();
+
+            services.AddTransient<ITaskManagerService<NvidiaSmiModel>, MguTaskManagerService>();
             
             services.AddHostedService<TaskManagerService>();
             services.AddTransient<BackgroundServiceManager>();
