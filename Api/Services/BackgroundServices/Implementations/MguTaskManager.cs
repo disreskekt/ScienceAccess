@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace Api.Services.BackgroundServices.Implementations;
 
-public class MguTaskManagerService : ITaskManagerService<NvidiaSmiModel>
+public class MguTaskManager : ITaskManagerImplementation<NvidiaSmiModel>
 {
     private readonly IServiceProvider _services;
     private readonly QueueService _queueService;
@@ -19,7 +19,7 @@ public class MguTaskManagerService : ITaskManagerService<NvidiaSmiModel>
     private readonly GlobalParametersService _globalParametersService;
     private readonly string _programVersionsFolder;
 
-    public MguTaskManagerService(
+    public MguTaskManager(
         IServiceProvider services,
         QueueService queueService,
         SshService sshService,

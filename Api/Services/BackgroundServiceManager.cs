@@ -13,17 +13,17 @@ public class BackgroundServiceManager
 {
     private static readonly int[] _waitingTimings = new[] {5000, 5000, 10000, 30000};
     
-    private readonly TaskManagerService _taskManagerService;
+    private readonly TaskManager _taskManager;
 
 
     public BackgroundServiceManager(IServiceProvider services)
     {
-        _taskManagerService = (TaskManagerService) services.GetServices<IHostedService>().First(service => service is TaskManagerService);
+        _taskManager = (TaskManager) services.GetServices<IHostedService>().First(service => service is TaskManager);
     }
 
     public async Task TaskManagerRun()
     {
-        await _taskManagerService.RunManually(CancellationToken.None);
+        await _taskManager.RunManually(CancellationToken.None);
     }
 
     public async Task FastTaskCheck()
@@ -32,7 +32,7 @@ public class BackgroundServiceManager
         {
             await Task.Delay(waitingTiming);
             
-            await _taskManagerService.RunManually(CancellationToken.None);
+            await _taskManager.RunManually(CancellationToken.None);
             
             //todo check if task done and break
         }

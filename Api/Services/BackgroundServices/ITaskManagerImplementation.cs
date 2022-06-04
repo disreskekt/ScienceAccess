@@ -2,7 +2,7 @@
 
 namespace Api.Services.BackgroundServices;
 
-public interface ITaskManagerService<TModel>
+public interface ITaskManagerImplementation<TModel>
 where TModel : class
 {
     TModel GetParsedStatus();
