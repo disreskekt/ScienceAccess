@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Models.NvidiaSmiModels;
@@ -11,13 +12,13 @@ public class QueueService
 {
     private static readonly ConcurrentQueue<TicketTask> _queue;
     private static readonly ConcurrentDictionary<Process, TicketTask> _runningTasks;
-    private static readonly ConcurrentQueue<TicketTask> _finishedQueue;
+    private static readonly List<TicketTask> _finishedQueue;
     
     static QueueService()
     {
         _queue = new ConcurrentQueue<TicketTask>();
         _runningTasks = new ConcurrentDictionary<Process, TicketTask>();
-        _finishedQueue = new ConcurrentQueue<TicketTask>();
+        _finishedQueue = new List<TicketTask>();
     }
     
     public async Task AddToQueue(TicketTask task)
@@ -35,11 +36,16 @@ public class QueueService
         return null;
     }
 
-    public void AddToFinishedQueue(TicketTask task)
+    public void AddToFinishedList(TicketTask task)
     {
-        _finishedQueue.Enqueue(task);
+        _finishedQueue.Add(task);
         
         //todo maybe remove this
+    }
+
+    public TicketTask GetFromFinishedList(TicketTask task)
+    {
+        return _finishedQueue.Find(el => el.Equals(task));
     }
 
     public void AddToRunningTasks(Process process, TicketTask task)

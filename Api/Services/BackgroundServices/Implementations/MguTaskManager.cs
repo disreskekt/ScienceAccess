@@ -75,7 +75,7 @@ public class MguTaskManager : ITaskManagerImplementation
 
             if (startedProcess is null)
             {
-                _queueService.AddToFinishedQueue(taskFromQueue);
+                _queueService.AddToFinishedList(taskFromQueue);
                 
                 using (IServiceScope serviceScope = _services.CreateScope())
                 {
@@ -122,7 +122,7 @@ public class MguTaskManager : ITaskManagerImplementation
             {
                 Models.Task task = _queueService.RemoveRunningTask(process);
                 
-                _queueService.AddToFinishedQueue(task);
+                _queueService.AddToFinishedList(task);
 
                 using (IServiceScope serviceScope = _services.CreateScope())
                 {

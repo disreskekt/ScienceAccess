@@ -80,7 +80,7 @@ public class TaskService
 
         await _db.SaveChangesAsync();
 
-        _backgroundServiceManager.FastTaskCheck(); //that's right
+        _backgroundServiceManager.FastTaskCheck(ticket.Task); //that's right
     }
 
     public async Task StopTask(Guid taskId, int userId)
