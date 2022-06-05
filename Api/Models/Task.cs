@@ -6,7 +6,7 @@ using Api.Models.Enums;
 
 namespace Api.Models
 {
-    public class Task
+    public class Task : IEquatable<Task>
     {
         [Key]
         [ForeignKey("Ticket")]
@@ -17,5 +17,12 @@ namespace Api.Models
         public string ProgramVersion { get; set; }
         public TaskStatuses Status { get; set; }
         public Ticket Ticket { get; set; }
+
+
+        public bool Equals(Task other)
+        {
+            return other is not null &&
+                   this.Id == other.Id;
+        }
     }
 }

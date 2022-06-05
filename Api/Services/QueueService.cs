@@ -12,13 +12,15 @@ public class QueueService
 {
     private static readonly ConcurrentQueue<TicketTask> _queue;
     private static readonly ConcurrentDictionary<Process, TicketTask> _runningTasks;
-    private static readonly List<TicketTask> _finishedQueue;
+    private static readonly List<TicketTask> _finishedList;
+    private static readonly List<TicketTask> _killList;
     
     static QueueService()
     {
         _queue = new ConcurrentQueue<TicketTask>();
         _runningTasks = new ConcurrentDictionary<Process, TicketTask>();
-        _finishedQueue = new List<TicketTask>();
+        _finishedList = new List<TicketTask>();
+        _killList = new List<TicketTask>();
     }
     
     public async Task AddToQueue(TicketTask task)
@@ -38,14 +40,14 @@ public class QueueService
 
     public void AddToFinishedList(TicketTask task)
     {
-        _finishedQueue.Add(task);
+        _finishedList.Add(task);
         
         //todo maybe remove this
     }
 
     public TicketTask GetFromFinishedList(TicketTask task)
     {
-        return _finishedQueue.Find(el => el.Equals(task));
+        return _finishedList.Find(el => el.Equals(task));
     }
 
     public void AddToRunningTasks(Process process, TicketTask task)
@@ -56,9 +58,9 @@ public class QueueService
         }
     }
 
-    public Process[] GetRunningProcesses()
+    public Dictionary<Process, TicketTask> GetRunningTasks()
     {
-        return _runningTasks.Keys.ToArray();
+        return _runningTasks.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }
 
     public TicketTask RemoveRunningTask(Process process)
@@ -69,5 +71,15 @@ public class QueueService
         }
         
         return task;
+    }
+
+    public void AddToKillList(TicketTask task)
+    {
+        _killList.Add(task);
+    }
+
+    public TicketTask[] GetKillList()
+    {
+        return _killList.ToArray();
     }
 }

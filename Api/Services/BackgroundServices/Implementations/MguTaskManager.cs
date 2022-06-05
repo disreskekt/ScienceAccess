@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Api.Data;
 using Api.Helpers;
@@ -124,35 +125,65 @@ public class MguTaskManager : ITaskManagerImplementation
     {
         NvidiaSmiModel nvidiaSmiResult = (NvidiaSmiModel) status;
         
-        Process[] runningProcessesToUpdate = _queueService.GetRunningProcesses();
-
-        foreach (Process process in runningProcessesToUpdate)
+        Dictionary<Process, TicketTask> runningProcessesToUpdate = _queueService.GetRunningTasks();
+        
+        TicketTask[] tasksToKill = _queueService.GetKillList();
+        
+        using (IServiceScope serviceScope = _services.CreateScope())
         {
-            if (!nvidiaSmiResult.Processes.Contains(process))
+            Context db = (Context) serviceScope.ServiceProvider.GetService(typeof(Context)) ??
+                         throw new InvalidOperationException();
+            
+            foreach (KeyValuePair<Process, TicketTask> kvp in runningProcessesToUpdate)
             {
-                TicketTask task = _queueService.RemoveRunningTask(process);
-                
-                _queueService.AddToFinishedList(task);
-
-                using (IServiceScope serviceScope = _services.CreateScope())
+                if (!nvidiaSmiResult.Processes.Contains(kvp.Key))
                 {
-                    Context db = (Context) serviceScope.ServiceProvider.GetService(typeof(Context)) ??
-                                 throw new InvalidOperationException();
+                    TicketTask task = _queueService.RemoveRunningTask(kvp.Key);
+                    
+                    _queueService.AddToFinishedList(task);
                     
                     TicketTask trackingTask = db.Find<TicketTask>(task.Id) ?? throw new InvalidOperationException();
                     
                     trackingTask.Status = TaskStatuses.Done;
-
-                    string[] outputFiles = _sftpService.ListOfFiles(trackingTask.DirectoryPath, trackingTask.FileNames.Select(filename => filename.Name).ToArray());
-
+                    
+                    string[] outputFiles = _sftpService.ListOfFiles(trackingTask.DirectoryPath,
+                        trackingTask.FileNames.Select(filename => filename.Name).ToArray());
+                    
                     foreach (string outputFile in outputFiles)
                     {
                         trackingTask.FileNames.Add(new Filename() {Name = outputFile, Inputed = false});
                     }
+                }
+                else
+                {
+                    foreach (TicketTask task in tasksToKill)
+                    {
+                        if (runningProcessesToUpdate.ContainsValue(task))
+                        {
+                            _sshService.RunCustomCommand(
+                                $"kill {runningProcessesToUpdate.Where(kvpair => kvpair.Value.Equals(task)).Select(kvpair => kvpair.Key).First()}");
+                            
+                            _queueService.RemoveRunningTask(kvp.Key);
                     
-                    await db.SaveChangesAsync();
+                            _queueService.AddToFinishedList(task);
+                    
+                            TicketTask trackingTask = db.Find<TicketTask>(task.Id) ?? throw new InvalidOperationException();
+                    
+                            trackingTask.Status = TaskStatuses.Failed;
+                    
+                            string[] outputFiles = _sftpService.ListOfFiles(trackingTask.DirectoryPath,
+                                trackingTask.FileNames.Select(filename => filename.Name).ToArray());
+                    
+                            foreach (string outputFile in outputFiles)
+                            {
+                                trackingTask.FileNames.Add(new Filename() {Name = outputFile, Inputed = false});
+                            }
+                        }
+                    }
                 }
             }
+            
+            await db.SaveChangesAsync();
         }
     }
 }

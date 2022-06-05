@@ -17,12 +17,14 @@ public class TaskService
     private readonly Context _db;
     private readonly QueueService _queueService;
     private readonly BackgroundServiceManager _backgroundServiceManager;
+    private readonly SshService _sshService;
 
-    public TaskService(Context context, QueueService queueService, BackgroundServiceManager backgroundServiceManager)
+    public TaskService(Context context, QueueService queueService, BackgroundServiceManager backgroundServiceManager, SshService sshService)
     {
         _db = context;
         _queueService = queueService;
         _backgroundServiceManager = backgroundServiceManager;
+        _sshService = sshService;
     }
 
     public async Task StartTask(StartTask startTaskModel)
@@ -102,8 +104,10 @@ public class TaskService
         {
             throw new Exception("Task not in progress or pending");
         }
+        
+        _queueService.AddToKillList(task);
 
-        //todo some actions
+        _backgroundServiceManager.FastTaskCheck(task); //that's right
     }
 
     public async Task StopTaskByAdmin(Guid taskId)
@@ -119,7 +123,9 @@ public class TaskService
         {
             throw new Exception("Task not in progress or pending");
         }
+        
+        _queueService.AddToKillList(task);
 
-        //todo some actions
+        _backgroundServiceManager.FastTaskCheck(task); //that's right
     }
 }
