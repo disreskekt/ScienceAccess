@@ -43,6 +43,15 @@ public class UserService
         await _db.SaveChangesAsync();
     }
 
+    public async Task<int> GetPagesAmount(int pageSize = 10)
+    {
+        int usersCount = await _db.Users.CountAsync();
+
+        double pagesCount = (usersCount - 1) / (double) pageSize;
+
+        return pagesCount % 1 == 0 ? (int) pagesCount : (int) pagesCount + 1;
+    }
+    
     public async Task<List<AllUsersDto>> GetAll(FilterUsers filterUsers, int exceptId)
     {
         IQueryable<User> users = _db.Users

@@ -38,6 +38,22 @@ namespace Api.Controllers
             }
         }
         
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetPagesAmount([FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                int pagesAmount = await _userService.GetPagesAmount(pageSize);
+
+                return Ok(pagesAmount);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll([FromBody] FilterUsers filterUsers)
