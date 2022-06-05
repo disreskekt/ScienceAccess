@@ -66,7 +66,7 @@ public class MguTaskManager : ITaskManagerImplementation
                 .GlobalParametersDictionary
                 .TryGetValue(freeGpu.ToString(), out string streams))
             {
-                streams = "qwe";
+                streams = "1";
             }
 
             _sshService.RunTask(taskFromQueue.DirectoryPath, programPath, jobFile, freeGpu, streams);
