@@ -64,7 +64,7 @@ public class SftpService : IDisposable
             return filenames;
         }
 
-        public string[] ListOfFiles(string path)
+        public string[] ListOfFiles(string path, string[] except = null)
         {
             if (!_client.IsConnected)
             {
@@ -79,6 +79,14 @@ public class SftpService : IDisposable
             List<SftpFile> listDirectory = _client.ListDirectory(path).ToList();
 
             listDirectory.RemoveAll(file => file.Name is "." or "..");
+
+            if (except is not null && except.Any())
+            {
+                foreach (string exceptOne in except)
+                {
+                    listDirectory.RemoveAll(file => file.Name == exceptOne);
+                }
+            }
             
             return listDirectory.Select(file => file.Name).ToArray();
         }
