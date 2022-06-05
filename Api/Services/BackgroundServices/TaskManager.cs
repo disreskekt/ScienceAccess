@@ -1,15 +1,14 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Api.Models.NvidiaSmiModels;
 using TicketTask = Api.Models.Task;
 
 namespace Api.Services.BackgroundServices;
 
 public class TaskManager : BaseBackgroundService
 {
-    private readonly ITaskManagerImplementation<NvidiaSmiModel> _taskManagerImplementation; //todo more abstract!
+    private readonly ITaskManagerImplementation _taskManagerImplementation; //todo maybe generics
 
-    public TaskManager(ITaskManagerImplementation<NvidiaSmiModel> taskManagerImplementation)
+    public TaskManager(ITaskManagerImplementation taskManagerImplementation)
     {
         _taskManagerImplementation = taskManagerImplementation;
     }
@@ -17,7 +16,7 @@ public class TaskManager : BaseBackgroundService
     protected override int ExecutionInterval => 60000;
     protected override async Task DoWork(CancellationToken cancellationToken)
     {
-        NvidiaSmiModel status = _taskManagerImplementation.GetParsedStatus();
+        object status = _taskManagerImplementation.GetParsedStatus();
         
         await _taskManagerImplementation.CheckRunningTasks(status);
         

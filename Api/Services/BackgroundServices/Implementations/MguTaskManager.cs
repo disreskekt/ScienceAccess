@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace Api.Services.BackgroundServices.Implementations;
 
-public class MguTaskManager : ITaskManagerImplementation<NvidiaSmiModel>
+public class MguTaskManager : ITaskManagerImplementation
 {
     private readonly IServiceProvider _services;
     private readonly QueueService _queueService;
@@ -33,15 +33,17 @@ public class MguTaskManager : ITaskManagerImplementation<NvidiaSmiModel>
         _programVersionsFolder = programVersionsFolder.Value.Path;
     }
     
-    public NvidiaSmiModel GetParsedStatus()
+    public object GetParsedStatus()
     {
         string status = _sshService.GetStatus();
 
         return NvidiaSmiParser.ParseNvidiaSmiResult(status);
     }
 
-    public async Task RunTasksFromQueue(NvidiaSmiModel nvidiaSmiResult)
+    public async Task RunTasksFromQueue(object status)
     {
+        NvidiaSmiModel nvidiaSmiResult = (NvidiaSmiModel) status;
+        
         while (nvidiaSmiResult.HasFreeGpu)
         {
             Models.Task taskFromQueue = _queueService.GetFromQueue();
@@ -69,7 +71,7 @@ public class MguTaskManager : ITaskManagerImplementation<NvidiaSmiModel>
 
             _sshService.RunTask(taskFromQueue.DirectoryPath, programPath, jobFile, freeGpu, streams);
 
-            Process startedProcess = GetParsedStatus().Processes.FirstOrDefault(proc => proc.Gpu == freeGpu);
+            Process startedProcess = ((NvidiaSmiModel) GetParsedStatus()).Processes.FirstOrDefault(proc => proc.Gpu == freeGpu);
 
             if (startedProcess is null)
             {
@@ -108,8 +110,10 @@ public class MguTaskManager : ITaskManagerImplementation<NvidiaSmiModel>
         }
     }
 
-    public async Task CheckRunningTasks(NvidiaSmiModel nvidiaSmiResult)
+    public async Task CheckRunningTasks(object status)
     {
+        NvidiaSmiModel nvidiaSmiResult = (NvidiaSmiModel) status;
+        
         Process[] runningProcessesToUpdate = _queueService.GetRunningProcesses();
 
         foreach (Process process in runningProcessesToUpdate)

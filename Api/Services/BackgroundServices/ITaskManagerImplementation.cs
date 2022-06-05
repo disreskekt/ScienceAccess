@@ -2,10 +2,9 @@
 
 namespace Api.Services.BackgroundServices;
 
-public interface ITaskManagerImplementation<TModel>
-where TModel : class
+public interface ITaskManagerImplementation
 {
-    TModel GetParsedStatus();
-    Task RunTasksFromQueue(TModel status);
-    Task CheckRunningTasks(TModel status);
+    object GetParsedStatus();
+    Task RunTasksFromQueue(object status);
+    Task CheckRunningTasks(object status);
 }

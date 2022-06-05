@@ -54,7 +54,7 @@ namespace Api
             services.AddTransient<GlobalParametersService>();
             services.AddTransient<QueueService>();
 
-            services.AddTransient<ITaskManagerImplementation<NvidiaSmiModel>, MguTaskManager>();
+            services.AddTransient<ITaskManagerImplementation, MguTaskManager>();
             
             services.AddHostedService<TaskManager>();
             services.AddTransient<BackgroundServiceManager>();
