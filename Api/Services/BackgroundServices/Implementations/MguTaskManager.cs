@@ -16,6 +16,8 @@ namespace Api.Services.BackgroundServices.Implementations;
 
 public class MguTaskManager : ITaskManagerImplementation
 {
+    private static Dictionary<Process, TicketTask> _processToTaskDictionary = new Dictionary<Process, TicketTask>();
+
     private readonly IServiceProvider _services;
     private readonly QueueService _queueService;
     private readonly SshService _sshService;
@@ -41,7 +43,7 @@ public class MguTaskManager : ITaskManagerImplementation
     
     public object GetParsedStatus()
     {
-        string status = _sshService.GetStatus();
+        string status = _sshService.RunCustomCommand("nvidia-smi");
 
         return NvidiaSmiParser.ParseNvidiaSmiResult(status);
     }
@@ -74,8 +76,12 @@ public class MguTaskManager : ITaskManagerImplementation
             {
                 streams = "1";
             }
+            
+            string cdCommand = $"cd {taskFromQueue.DirectoryPath}";
+            string mainCommand = $"{programPath} -cfg {jobFile} -gpu {freeGpu} -streams {streams} >out.txt 2>&1 \\&";
+            string disownCommand = "disown -r";
 
-            _sshService.RunTask(taskFromQueue.DirectoryPath, programPath, jobFile, freeGpu, streams);
+            _sshService.RunCustomCommand($"{cdCommand} && {mainCommand} && {disownCommand}");
 
             Process startedProcess = ((NvidiaSmiModel) GetParsedStatus()).Processes.FirstOrDefault(proc => proc.Gpu == freeGpu);
 
@@ -104,7 +110,9 @@ public class MguTaskManager : ITaskManagerImplementation
             }
             else
             {
-                _queueService.AddToRunningTasks(startedProcess, taskFromQueue);
+                _queueService.AddToRunningTasks(taskFromQueue);
+                
+                _processToTaskDictionary.Add(startedProcess, taskFromQueue);
 
                 using (IServiceScope serviceScope = _services.CreateScope())
                 {
@@ -125,7 +133,10 @@ public class MguTaskManager : ITaskManagerImplementation
     {
         NvidiaSmiModel nvidiaSmiResult = (NvidiaSmiModel) status;
         
-        Dictionary<Process, TicketTask> runningProcessesToUpdate = _queueService.GetRunningTasks();
+        List<TicketTask> runningTasksToUpdate = _queueService.GetRunningTasks();
+
+        Dictionary<Process, TicketTask> runningProcessesToUpdate = _processToTaskDictionary.Where(kvp => runningTasksToUpdate.Contains(kvp.Value))
+            .ToDictionary(x => x.Key, y => y.Value);
         
         TicketTask[] tasksToKill = _queueService.GetKillList();
         
@@ -138,11 +149,13 @@ public class MguTaskManager : ITaskManagerImplementation
             {
                 if (!nvidiaSmiResult.Processes.Contains(kvp.Key))
                 {
-                    TicketTask task = _queueService.RemoveRunningTask(kvp.Key);
+                    _queueService.RemoveRunningTask(kvp.Value);
                     
-                    _queueService.AddToFinishedList(task);
+                    _queueService.AddToFinishedList(kvp.Value);
                     
-                    TicketTask trackingTask = db.Find<TicketTask>(task.Id) ?? throw new InvalidOperationException();
+                    _processToTaskDictionary.Remove(_processToTaskDictionary.First(kvpair => kvpair.Key.Equals(kvp.Key)).Key);
+                    
+                    TicketTask trackingTask = db.Find<TicketTask>(kvp.Value.Id) ?? throw new InvalidOperationException();
                     
                     trackingTask.Status = TaskStatuses.Done;
                     
@@ -163,9 +176,11 @@ public class MguTaskManager : ITaskManagerImplementation
                             _sshService.RunCustomCommand(
                                 $"kill {runningProcessesToUpdate.Where(kvpair => kvpair.Value.Equals(task)).Select(kvpair => kvpair.Key).First()}");
                             
-                            _queueService.RemoveRunningTask(kvp.Key);
+                            _queueService.RemoveRunningTask(kvp.Value);
                     
                             _queueService.AddToFinishedList(task);
+                    
+                            _processToTaskDictionary.Remove(_processToTaskDictionary.First(kvpair => kvpair.Key.Equals(kvp.Key)).Key);
                     
                             TicketTask trackingTask = db.Find<TicketTask>(task.Id) ?? throw new InvalidOperationException();
                     

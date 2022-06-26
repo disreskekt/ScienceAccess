@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Api.Models.NvidiaSmiModels;
 using TicketTask = Api.Models.Task;
 
 namespace Api.Services;
@@ -11,14 +9,15 @@ namespace Api.Services;
 public class QueueService
 {
     private static readonly ConcurrentQueue<TicketTask> _queue;
-    private static readonly ConcurrentDictionary<Process, TicketTask> _runningTasks;
+    private static readonly List<TicketTask> _runningTasks;
+    private static readonly object _locker = new object();
     private static readonly List<TicketTask> _finishedList;
     private static readonly List<TicketTask> _killList;
     
     static QueueService()
     {
         _queue = new ConcurrentQueue<TicketTask>();
-        _runningTasks = new ConcurrentDictionary<Process, TicketTask>();
+        _runningTasks = new List<TicketTask>();
         _finishedList = new List<TicketTask>();
         _killList = new List<TicketTask>();
     }
@@ -50,27 +49,30 @@ public class QueueService
         return _finishedList.Find(el => el.Equals(task));
     }
 
-    public void AddToRunningTasks(Process process, TicketTask task)
+    public void AddToRunningTasks(TicketTask task)
     {
-        if (!_runningTasks.TryAdd(process, task))
+        lock (_locker)
         {
-            throw new Exception("Can't add to _runningTasks dictionary");
+            _runningTasks.Add(task);
         }
     }
 
-    public Dictionary<Process, TicketTask> GetRunningTasks()
+    public List<TicketTask> GetRunningTasks()
     {
-        return _runningTasks.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        lock (_locker)
+        {
+            return _runningTasks;
+        }
     }
 
-    public TicketTask RemoveRunningTask(Process process)
+    public void RemoveRunningTask(TicketTask task)
     {
-        if (!_runningTasks.TryRemove(process, out TicketTask task))
+        lock (_locker)
         {
-            throw new Exception("Can't remove value from _runningTasks dictionary");
+            TicketTask taskToRemove = _runningTasks.First(t => t.Equals(task));
+
+            _runningTasks.Remove(taskToRemove);
         }
-        
-        return task;
     }
 
     public void AddToKillList(TicketTask task)

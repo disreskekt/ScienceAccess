@@ -54,7 +54,8 @@ namespace Api
             services.AddTransient<GlobalParametersService>();
             services.AddTransient<QueueService>();
 
-            services.AddTransient<ITaskManagerImplementation, MguTaskManager>();
+            // services.AddTransient<ITaskManagerImplementation, MguTaskManager>();
+            services.AddTransient<ITaskManagerImplementation, TestTaskManager>();
             
             services.AddHostedService<TaskManager>();
             services.AddTransient<BackgroundServiceManager>();

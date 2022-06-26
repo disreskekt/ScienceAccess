@@ -19,32 +19,6 @@ public class SshService : IDisposable
             linuxCredentials.Password);
     }
 
-    public string GetStatus()
-    {
-        if (!_client.IsConnected)
-        {
-            _client.Connect();
-        }
-
-        SshCommand command = _client.RunCommand("nvidia-smi");
-
-        return command.Result;
-    }
-
-    public void RunTask(string directory, string programPath, string jobFileName, int gpu, string streams)
-    {
-        if (!_client.IsConnected)
-        {
-            _client.Connect();
-        }
-
-        string cdCommand = $"cd {directory}";
-        string mainCommand = $"{programPath} -cfg {jobFileName} -gpu {gpu} -streams {streams} >out.txt 2>&1 \\&";
-        string disownCommand = "disown -r";
-
-        _client.RunCommand($"{cdCommand} && {mainCommand} && {disownCommand}");
-    }
-
     public string RunCustomCommand(string command)
     {
         if (!_client.IsConnected)
