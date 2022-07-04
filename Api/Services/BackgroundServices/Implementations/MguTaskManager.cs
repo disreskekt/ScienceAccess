@@ -43,7 +43,7 @@ public class MguTaskManager : ITaskManagerImplementation
     
     public object GetParsedStatus()
     {
-        string status = _sshService.RunCustomCommand("nvidia-smi");
+        string status = _sshService.RunCustomCommand("nvidia-smi").GetAwaiter().GetResult();
 
         return NvidiaSmiParser.ParseNvidiaSmiResult(status);
     }

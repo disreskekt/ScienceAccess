@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ public class GlobalParametersService
     
     public GlobalParameters GetGlobalParameters()
     {
-        return GlobalParameters;
+        return GlobalParameters ?? new GlobalParameters() {GlobalParametersDictionary = new Dictionary<string, string>()};
     }
     
     public async Task<GlobalParameters> SetGlobalParameters(GlobalParameters newGlobalParametersModel)

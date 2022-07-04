@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Api.Data;
 using Api.Models;
 using Api.Models.Enums;
 using Api.Models.TestTaskMangerModels;
 using Api.Options;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -66,11 +68,11 @@ public class TestTaskManager : ITaskManagerImplementation
             string freeGpu = testTaskStatus.Dictionary.First(kvp => kvp.Value is null).Key;
 
             string cdCommand = $"cd {taskFromQueue.DirectoryPath}";
-            string mainCommand = $"{programPath} {freeGpu} {taskFromQueue.Id}";
+            string mainCommand = $"{programPath} {freeGpu} {taskFromQueue.Id} \\&";
             string disownCommand = "disown -r";
 
             _sshService.RunCustomCommand($"{cdCommand} && {mainCommand} && {disownCommand}");
-            
+
             _queueService.AddToRunningTasks(taskFromQueue);
 
             using (IServiceScope serviceScope = _services.CreateScope())
@@ -107,8 +109,10 @@ public class TestTaskManager : ITaskManagerImplementation
                     _queueService.RemoveRunningTask(taskToUpdate);
                     
                     _queueService.AddToFinishedList(taskToUpdate);
-                    
-                    TicketTask trackingTask = db.Find<TicketTask>(taskToUpdate.Id) ?? throw new InvalidOperationException();
+
+                    TicketTask trackingTask = await db.Tasks.Where(task => task.Id == taskToUpdate.Id)
+                        .Include(task => task.FileNames)
+                        .FirstAsync();
                     
                     trackingTask.Status = TaskStatuses.Done;
                     
@@ -130,7 +134,9 @@ public class TestTaskManager : ITaskManagerImplementation
                     
                             _queueService.AddToFinishedList(taskToUpdate);
                     
-                            TicketTask trackingTask = db.Find<TicketTask>(taskToUpdate.Id) ?? throw new InvalidOperationException();
+                            TicketTask trackingTask = await db.Tasks.Where(t => t.Id == taskToUpdate.Id)
+                                .Include(t => t.FileNames)
+                                .FirstAsync();
                     
                             trackingTask.Status = TaskStatuses.Failed;
                     

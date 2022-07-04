@@ -59,9 +59,16 @@ public class QueueService
 
     public List<TicketTask> GetRunningTasks()
     {
+        List<TicketTask> newList = new List<TicketTask>(_runningTasks.Count);
+        
         lock (_locker)
         {
-            return _runningTasks;
+            foreach (TicketTask task in _runningTasks)
+            {
+                newList.Add(new TicketTask() {Id = task.Id, Comment = task.Comment, Status = task.Status, DirectoryPath = task.DirectoryPath, FileNames = task.FileNames, ProgramVersion = task.ProgramVersion});
+            }
+            
+            return newList;
         }
     }
 

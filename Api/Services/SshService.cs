@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Api.Options;
 using Microsoft.Extensions.Options;
 using Renci.SshNet;
@@ -19,16 +20,20 @@ public class SshService : IDisposable
             linuxCredentials.Password);
     }
 
-    public string RunCustomCommand(string command)
+    public async Task<string> RunCustomCommand(string command)
     {
         if (!_client.IsConnected)
         {
             _client.Connect();
         }
 
-        return _client.RunCommand(command).Result;
-    }
-    
+        Task<string> task = Task.Run(() => _client.RunCommand(command).Result);
+
+        await Task.Delay(250);
+        
+        return task.Result ?? "";
+    }  
+
     public void Dispose()
     {
         if (_client.IsConnected)
